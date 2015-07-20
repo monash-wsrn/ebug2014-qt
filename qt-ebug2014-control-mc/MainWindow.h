@@ -114,8 +114,8 @@ class MainWindow : public QMainWindow
     signals:
         void newGoalPos(int x, int y);  //from THIS to ControlThread
         void updateTarget();    //from THIS to RenderThread
-private slots:
-        void on_startTrackingButton_clicked();
+//private slots:
+//        void on_startTrackingButton_clicked();
 };
 
 #endif // MAINWINDOW_H

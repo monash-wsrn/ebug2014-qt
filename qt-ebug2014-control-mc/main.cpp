@@ -38,7 +38,7 @@
 #include "MainWindow.h"
 #include <QApplication>
 
-static QTextEdit *debugTextEdit = 0;
+//static QTextEdit *debugTextEdit = 0; Moving this to first usage
 static QString *logFilePath = 0;
 
 void logOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -66,7 +66,7 @@ void logOutput(QtMsgType type, const QMessageLogContext &context, const QString 
     out.flush();
 
     // Write to UI (always)
-    //debugTextEdit->append(line.toStdString().data());
+    //debugTextEdit->append(line.toStdString( ).data());
 
     // Add new line
     out << "\n";
@@ -100,9 +100,13 @@ int main(int argc, char *argv[])
     // Show main window
     QApplication a(argc, argv);
     MainWindow w;
-    debugTextEdit = new QTextEdit;
+    QTextEdit *debugTextEdit = new QTextEdit();
     w.setupLoggingUI(debugTextEdit);
     w.show();
+
+
+    qDebug("Test message");
+
     // Start event loop
     return a.exec();
 }
