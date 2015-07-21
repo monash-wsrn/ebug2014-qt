@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static QString logFilePath = "logfile.txt";
+static QString logFilePath = "/logfile.txt";
 
 void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -77,3 +77,57 @@ void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, cons
         abort();
     }
 }
+
+
+
+/*********************************
+** Old version of debug handling
+**********************************/
+//static QTextEdit *debugTextEdit = 0; Moving this to first usage
+//static QString *logFilePath = 0;
+
+//void logOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+//{
+//    // Write to local string
+//    QString line;
+//    QTextStream out(&line, QIODevice::WriteOnly);
+//    out << QTime::currentTime().toString("hh:mm:ss.zzz ");
+//    QByteArray localMsg = msg.toLocal8Bit();
+//    switch (type)
+//    {
+//        case QtDebugMsg:
+//            out << "Debug: " << localMsg.constData() << " (" << context.file << ":" << context.line << "," << context.function << ")";
+//            break;
+//        case QtWarningMsg:
+//            out << "Warning: " << localMsg.constData() << " (" << context.file << ":" << context.line << "," << context.function << ")";
+//            break;
+//        case QtCriticalMsg:
+//            out << "Critical: " << localMsg.constData() << " (" << context.file << ":" << context.line << "," << context.function << ")";
+//            break;
+//        //case QtFatalMsg:
+//            //out << "Fatal: " << localMsg.constData() << " (" << context.file << ":" << context.line << "," << context.function << ")";
+//            //abort();
+//    }
+//    out.flush();
+
+//    // Write to UI (always)
+//    //debugTextEdit->append(line.toStdString( ).data());
+
+//    // Add new line
+//    out << "\n";
+
+//    // Write to file
+//    #ifdef LOG_OUTPUT_DEST_FILE
+//    QFile file(*logFilePath);
+//    if(file.open(QIODevice::Append | QIODevice::Text))
+//    {
+//        QTextStream out_file(&file);
+//        out_file << line.toStdString().data();
+//    }
+//    #endif
+
+//    // Write to stderr
+//    #ifdef LOG_OUTPUT_DEST_STDERR
+//    fprintf(stderr, "%s", line.toStdString().data());
+//    #endif
+//}

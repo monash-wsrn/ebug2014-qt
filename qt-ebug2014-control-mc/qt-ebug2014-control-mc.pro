@@ -18,7 +18,7 @@ TARGET = qt-ebug-control-multicamera
 TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++0x \
-            -Wall
+            -Wall -H
 
 DEFINES += APP_VERSION=\\\"1.0.0\\\" \
     LOG_OUTPUT_DEST_STDERR \
@@ -43,7 +43,8 @@ SOURCES += main.cpp \
     EBugData.cpp \
     RenderThread.cpp \
     ImageView.cpp \
-    PIDController.cpp
+    PIDController.cpp \
+    debugMessageHandler.cpp
 
 HEADERS  += \
     MainWindow.h \
