@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>507</width>
-    <height>501</height>
+    <width>684</width>
+    <height>565</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,9 +20,9 @@
    <string>qt-ebug-control-multicamera</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabsCamera">
       <property name="currentIndex">
        <number>-1</number>
       </property>
@@ -34,7 +34,7 @@
     <item>
      <widget class="QTabWidget" name="sideTab">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -45,6 +45,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_10">
           <item>
            <widget class="QPushButton" name="xBeeConnectButton">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -59,6 +62,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="xBeeDisconnectButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -84,6 +90,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_13">
           <item>
            <widget class="QPushButton" name="xBeeNodeDiscoveryButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -109,11 +118,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="xBeeDiscoveryDurationLineEdit">
+           <widget class="QLineEdit" name="linedRobotsDiscoveryDuration">
             <property name="font">
              <font>
               <pointsize>8</pointsize>
              </font>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -147,7 +159,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tabTracking">
        <attribute name="title">
         <string>Tracking</string>
        </attribute>
@@ -156,6 +168,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_11">
           <item>
            <widget class="QPushButton" name="startTrackingButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -170,6 +185,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="stopTrackingButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -214,6 +232,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QPushButton" name="startControlButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -228,6 +249,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="stopControlButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -253,7 +277,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>507</width>
+     <width>684</width>
      <height>19</height>
     </rect>
    </property>
@@ -294,6 +318,12 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Synchronize streams</string>
    </property>
@@ -324,12 +354,11 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
   <tabstop>sideTab</tabstop>
   <tabstop>xBeeConnectButton</tabstop>
   <tabstop>xBeeDisconnectButton</tabstop>
   <tabstop>xBeeNodeDiscoveryButton</tabstop>
-  <tabstop>xBeeDiscoveryDurationLineEdit</tabstop>
+  <tabstop>linedRobotsDiscoveryDuration</tabstop>
   <tabstop>xBeeNodeTable</tabstop>
   <tabstop>startTrackingButton</tabstop>
   <tabstop>stopTrackingButton</tabstop>

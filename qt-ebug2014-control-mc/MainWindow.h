@@ -87,6 +87,7 @@ class MainWindow : public QMainWindow
         void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
         void setupTables();
+        void newBlankCameraTab();
 
     public slots:
         void connectToCamera();

@@ -1,37 +1,4 @@
-// $Revision: 504 $
-// $Date: 2014-09-09 08:26:14 +1000 (Tue, 09 Sep 2014) $
-// $Author: erwinmochtarwijaya@gmail.com $
-/************************************************************************/
-/* qt-opencv-multithreaded:                                             */
-/* A multithreaded OpenCV application using the Qt framework.           */
-/*                                                                      */
-/* MainWindow.cpp                                                       */
-/*                                                                      */
-/* Nick D'Ademo <nickdademo@gmail.com>                                  */
-/*                                                                      */
-/* Copyright (c) 2012-2013 Nick D'Ademo                                 */
-/*                                                                      */
-/* Permission is hereby granted, free of charge, to any person          */
-/* obtaining a copy of this software and associated documentation       */
-/* files (the "Software"), to deal in the Software without restriction, */
-/* including without limitation the rights to use, copy, modify, merge, */
-/* publish, distribute, sublicense, and/or sell copies of the Software, */
-/* and to permit persons to whom the Software is furnished to do so,    */
-/* subject to the following conditions:                                 */
-/*                                                                      */
-/* The above copyright notice and this permission notice shall be       */
-/* included in all copies or substantial portions of the Software.      */
-/*                                                                      */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,      */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF   */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                */
-/* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS  */
-/* BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN   */
-/* ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN    */
-/* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE     */
-/* SOFTWARE.                                                            */
-/*                                                                      */
-/************************************************************************/
+// Sets up the MainWindow user interface and starts the processing threads
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
@@ -43,54 +10,43 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    // Setup UI
+    // Setup UI based on MainWindow.ui form (made in Qt designer)
     ui->setupUi(this);
-    // Set initial UI state
-    ui->xBeeConnectButton->setEnabled(true);
-    ui->xBeeDisconnectButton->setEnabled(false);
-    ui->startTrackingButton->setEnabled(false);
-    ui->stopTrackingButton->setEnabled(false);
-    ui->xBeeNodeDiscoveryButton->setEnabled(false);
-    ui->xBeeDiscoveryDurationLineEdit->setText(QString::number(DEFAULT_XBEE_ND_DURATION));
-    ui->startControlButton->setEnabled(false);
-    ui->stopControlButton->setEnabled(false);
+
+    // Set initial UI state (initial button states set with Qt Designer)
+    ui->linedRobotsDiscoveryDuration->setText(QString::number(DEFAULT_XBEE_ND_DURATION));
+
     setupTables();
-    // Stream synchronization cannot be disabled by user
-    ui->actionSynchronizeStreams->setChecked(true);
-    ui->actionSynchronizeStreams->setEnabled(false);
-    // Set start tab as blank
-    QLabel *newTab = new QLabel(ui->tabWidget);
-    newTab->setText("No camera connected.");
-    newTab->setAlignment(Qt::AlignCenter);
-    ui->tabWidget->addTab(newTab, "");
-    ui->tabWidget->setTabsClosable(false);
+
+    //Add a blank "No camera connected" tab in camera tabs
+    newBlankCameraTab();
 
     // Add "Connect to Camera" button to tab
     connectToCameraButton = new QPushButton();
     connectToCameraButton->setText("Connect to Camera...");
-    ui->tabWidget->setCornerWidget(connectToCameraButton, Qt::TopLeftCorner);   
+    ui->tabsCamera->setCornerWidget(connectToCameraButton, Qt::TopLeftCorner);
     // Set focus on button
     connectToCameraButton->setFocus();
 
     /* Added by Erwin 20/02/14: Creating the Receiver button on the tab*/
     connectToReceiverButton = new QPushButton();
     connectToReceiverButton->setText("Connect to Receiver...");
-    ui->tabWidget->setCornerWidget(connectToReceiverButton, Qt::TopRightCorner);
+    ui->tabsCamera->setCornerWidget(connectToReceiverButton, Qt::TopRightCorner);
     connectToReceiverButton->setFocus();
     /************************************************************************/
 
     // Connect other signals/slots
     connect(connectToReceiverButton,SIGNAL(released()),this, SLOT(connectToReceiver())); //Added by Erwin 20/02/14
     connect(connectToCameraButton,SIGNAL(released()),this, SLOT(connectToCamera()));
-    connect(ui->tabWidget,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
+    connect(ui->tabsCamera,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui->xBeeConnectButton, SIGNAL(released()), this, SLOT(xBeeConnect()));
     connect(ui->xBeeDisconnectButton, SIGNAL(released()), this, SLOT(xBeeDisconnect()));
-#if 0
-    connect(ui->startTrackingButton, SIGNAL(released()), this, SLOT(startTracking()));
-    connect(ui->stopTrackingButton, SIGNAL(released()), this, SLOT(stopTracking()));
-#endif
+
+//    connect(ui->startTrackingButton, SIGNAL(released()), this, SLOT(startTracking()));
+//    connect(ui->stopTrackingButton, SIGNAL(released()), this, SLOT(stopTracking()));
+
     connect(ui->startControlButton, SIGNAL(released()), this, SLOT(startControl()));
     connect(ui->stopControlButton, SIGNAL(released()), this, SLOT(stopControl()));
     connect(ui->xBeeNodeDiscoveryButton, SIGNAL(released()), this, SLOT(doXBeeNodeDiscovery()));
@@ -180,7 +136,7 @@ void MainWindow::connectToCamera()
     else
     {
         // Get next tab index
-        int nextTabIndex = (deviceNumberMap.size()==0) ? 0 : ui->tabWidget->count();
+        int nextTabIndex = (deviceNumberMap.size()==0) ? 0 : ui->tabsCamera->count();
         // Show dialog
         CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, ui->actionSynchronizeStreams->isChecked());
         if(cameraConnectDialog->exec()==QDialog::Accepted)
@@ -195,7 +151,7 @@ void MainWindow::connectToCamera()
                 // Add created ImageBuffer to SharedImageBuffer object
                 sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
                 // Create CameraView
-                cameraViewMap[deviceNumber] = new CameraView(ui->tabWidget, deviceNumber, sharedImageBuffer);
+                cameraViewMap[deviceNumber] = new CameraView(ui->tabsCamera, deviceNumber, sharedImageBuffer);
 
                 // Check if stream synchronization is enabled
                 if(ui->actionSynchronizeStreams->isChecked())
@@ -228,15 +184,15 @@ void MainWindow::connectToCamera()
                     // Save tab label
                     QString tabLabel = cameraConnectDialog->getTabLabel();
                     // Allow tabs to be closed
-                    ui->tabWidget->setTabsClosable(true);
+                    ui->tabsCamera->setTabsClosable(true);
                     // If start tab, remove
                     if(nextTabIndex==0)
-                        ui->tabWidget->removeTab(0);
+                        ui->tabsCamera->removeTab(0);
                     // Add tab
-                    ui->tabWidget->addTab(cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
-                    ui->tabWidget->setCurrentWidget(cameraViewMap[deviceNumber]);
+                    ui->tabsCamera->addTab(cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
+                    ui->tabsCamera->setCurrentWidget(cameraViewMap[deviceNumber]);
                     // Set tooltips
-                    setTabCloseToolTips(ui->tabWidget, "Disconnect Camera");
+                    setTabCloseToolTips(ui->tabsCamera, "Disconnect Camera");
                     // Prevent user from enabling/disabling stream synchronization after a camera has been connected
                     ui->actionSynchronizeStreams->setEnabled(false);
                 }
@@ -318,9 +274,9 @@ void MainWindow::disconnectCamera(int index)
     if(doDisconnect)
     {
         // Save number of tabs
-        int nTabs = ui->tabWidget->count();
+        int nTabs = ui->tabsCamera->count();
         // Close tab
-        ui->tabWidget->removeTab(index);
+        ui->tabsCamera->removeTab(index);
 
         // Delete widget (CameraView) contained in tab
         delete cameraViewMap[deviceNumberMap.key(index)];
@@ -335,14 +291,25 @@ void MainWindow::disconnectCamera(int index)
         // If start tab, set tab as blank
         if(nTabs==1)
         {
-            QLabel *newTab = new QLabel(ui->tabWidget);
-            newTab->setText("No camera connected.");
-            newTab->setAlignment(Qt::AlignCenter);
-            ui->tabWidget->addTab(newTab, "");
-            ui->tabWidget->setTabsClosable(false);
+            newBlankCameraTab();
             ui->actionSynchronizeStreams->setEnabled(true);
         }
     }
+}
+
+/**
+ * @brief MainWindow::newBlankCameraTab
+ * Places a blank tab with no text in the tabsCamera tabs with
+ * the label "No camera connected.".
+ * Sets the tabsCamera to not closeable.
+ * Used at setup and when no. camera tabs is zero.
+ */
+void MainWindow::newBlankCameraTab(){
+    QLabel *newTab = new QLabel(ui->tabsCamera);
+    newTab->setText("No camera connected.");
+    newTab->setAlignment(Qt::AlignCenter);
+    ui->tabsCamera->addTab(newTab, "");
+    ui->tabsCamera->setTabsClosable(false);
 }
 
 void MainWindow::showAboutDialog()
@@ -448,15 +415,15 @@ void MainWindow::xBeeDisconnect()
 void MainWindow::doXBeeNodeDiscovery()
 {
     // Validate duration
-    if(ui->xBeeDiscoveryDurationLineEdit->text().isEmpty())
+    if(ui->linedRobotsDiscoveryDuration->text().isEmpty())
     {
         // Set to default
-        ui->xBeeDiscoveryDurationLineEdit->setText(QString::number(DEFAULT_XBEE_ND_DURATION));
+        ui->linedRobotsDiscoveryDuration->setText(QString::number(DEFAULT_XBEE_ND_DURATION));
         // Display error message
         QMessageBox::warning(this, "ERROR:","Discovery duration field blank.\nAutomatically set to default value.");
     }
     // Get duration from UI
-    int duration=ui->xBeeDiscoveryDurationLineEdit->text().toInt();
+    int duration=ui->linedRobotsDiscoveryDuration->text().toInt();
     // Perform check
     if(duration<DEFAULT_MIN_XBEE_ND_DURATION)
     {
@@ -476,7 +443,7 @@ void MainWindow::doXBeeNodeDiscovery()
         // Start timer
         nodeDiscoveryTimer->start(1000*duration);
         // Set UI
-        ui->xBeeDiscoveryDurationLineEdit->setEnabled(false);
+        ui->linedRobotsDiscoveryDuration->setEnabled(false);
         ui->xBeeNodeDiscoveryButton->setEnabled(false);
         ui->xBeeNodeDiscoveryButton->setText("Wait...");
         ui->xBeeDisconnectButton->setEnabled(false);
@@ -552,7 +519,7 @@ void MainWindow::updateXBeeNodeTable(QList<XBeeNode> xBeeNodeList)
         ui->xBeeNodeTable->resizeColumnsToContents();
     }
     // Set UI
-    ui->xBeeDiscoveryDurationLineEdit->setEnabled(true);
+    ui->linedRobotsDiscoveryDuration->setEnabled(true);
     ui->xBeeNodeDiscoveryButton->setEnabled(true);
     ui->xBeeNodeDiscoveryButton->setText("Discover Nodes...");
     ui->xBeeDisconnectButton->setEnabled(true);

@@ -54,15 +54,15 @@ int main(int argc, char *argv[])
     //Install custom debug message handler implemented in debugMessageHandler.cpp
     qInstallMessageHandler(debugMessageHandler);
     // Show main window
-    QApplication a(argc, argv);
-    MainWindow w;
+    QApplication appMain(argc, argv);
+    MainWindow winMain;
     //QTextEdit *debugTextEdit = new QTextEdit();
     //w.setupLoggingUI(debugTextEdit);
-    w.show();
+    winMain.show();
 
 
-    qDebug("Test message");
+    qDebug("Test message from main.");
 
     // Start event loop
-    return a.exec();
+    return appMain.exec();
 }
