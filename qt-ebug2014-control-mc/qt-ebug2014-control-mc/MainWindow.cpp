@@ -6,6 +6,10 @@
 #include <QLabel>
 #include <QMessageBox>
 
+/**
+ * @brief MainWindow::MainWindow
+ * Constructor to set up the main window ui, load default values, connect buttons to actions
+ */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -15,42 +19,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set initial UI state (initial button states set with Qt Designer)
     ui->linedRobotsDiscoveryDuration->setText(QString::number(DEFAULT_XBEE_ND_DURATION));
+    ui->tableRobots->resizeColumnsToContents();
 
-    setupTables();
+    // Resize tableTracking columns to a sample text
+    setupTableTracking();
 
     //Add a blank "No camera connected" tab in camera tabs
     newBlankCameraTab();
 
-    // Add "Connect to Camera" button to tab
-    connectToCameraButton = new QPushButton();
-    connectToCameraButton->setText("Connect to Camera...");
-    ui->tabsCamera->setCornerWidget(connectToCameraButton, Qt::TopLeftCorner);
-    // Set focus on button
-    connectToCameraButton->setFocus();
 
-    /* Added by Erwin 20/02/14: Creating the Receiver button on the tab*/
-    connectToReceiverButton = new QPushButton();
-    connectToReceiverButton->setText("Connect to Receiver...");
-    ui->tabsCamera->setCornerWidget(connectToReceiverButton, Qt::TopRightCorner);
-    connectToReceiverButton->setFocus();
-    /************************************************************************/
-
-    // Connect other signals/slots
-    connect(connectToReceiverButton,SIGNAL(released()),this, SLOT(connectToReceiver())); //Added by Erwin 20/02/14
-    connect(connectToCameraButton,SIGNAL(released()),this, SLOT(connectToCamera()));
-    connect(ui->tabsCamera,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
-    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(ui->xBeeConnectButton, SIGNAL(released()), this, SLOT(xBeeConnect()));
-    connect(ui->xBeeDisconnectButton, SIGNAL(released()), this, SLOT(xBeeDisconnect()));
-
-//    connect(ui->startTrackingButton, SIGNAL(released()), this, SLOT(startTracking()));
-//    connect(ui->stopTrackingButton, SIGNAL(released()), this, SLOT(stopTracking()));
-
-    connect(ui->startControlButton, SIGNAL(released()), this, SLOT(startControl()));
-    connect(ui->stopControlButton, SIGNAL(released()), this, SLOT(stopControl()));
-    connect(ui->xBeeNodeDiscoveryButton, SIGNAL(released()), this, SLOT(doXBeeNodeDiscovery()));
-    
+    // Start processing threads
     // Create SharedImageBuffer object
     sharedImageBuffer = new SharedImageBuffer();
     // Create dialog
@@ -59,6 +37,27 @@ MainWindow::MainWindow(QWidget *parent) :
     nodeDiscoveryTimer = new QTimer(this);
     // Set timer as single shot
     nodeDiscoveryTimer->setSingleShot(true);
+
+
+
+    // Connect buttons to dialogs/actions
+    connect(ui->btnReceiverConnect,SIGNAL(released()),this, SLOT(receiverConnect()));
+    connect(ui->btnCameraConnect,SIGNAL(released()),this, SLOT(cameraConnect()));
+    connect(ui->btnRobotsConnect, SIGNAL(released()), this, SLOT(robotsConnect()));
+    connect(ui->btnRobotsDisconnect, SIGNAL(released()), this, SLOT(robotsDisconnect()));
+    connect(ui->btnControlStart, SIGNAL(released()), this, SLOT(controlStart()));
+    connect(ui->btnControlStop, SIGNAL(released()), this, SLOT(controlStop()));
+    connect(ui->btnRobotsDiscover, SIGNAL(released()), this, SLOT(robotsDiscover()));
+
+    //Connect menu actions
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
+    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+
+    //Connect camera tab close to dissconnection function
+    connect(ui->tabsCamera,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -66,37 +65,37 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setupLoggingUI(QTextEdit *textEdit)
-{
-    // Save to member
-    debugTextEdit = textEdit;
-    // Set font size
-    QFont font = debugTextEdit->font();
-    font.setPointSize(8);
-    font.setBold(false);
-    debugTextEdit->setFont(font);
-    // Create widget
-    QWidget *logPage = new QWidget();
-    // Create V layout
-    QHBoxLayout *hbox = new QHBoxLayout();
-    // Create buttons and add to layout
-    QPushButton *clearLogButton = new QPushButton("Clear");
-    QPushButton *saveLogButton = new QPushButton("Save to File...");
-    hbox->addWidget(clearLogButton);
-    hbox->addWidget(saveLogButton);
-    // Create signal/slot connections
-    connect(clearLogButton, SIGNAL(released()), this, SLOT(clearLog()));
-    connect(saveLogButton, SIGNAL(released()), this, SLOT(saveLog()));
-    // Create V layout
-    QVBoxLayout *vbox = new QVBoxLayout();
-    // Add text edit and buttons to layout
-    vbox->addWidget(debugTextEdit);
-    vbox->addLayout(hbox);
-    // Set layout in widget
-    logPage->setLayout(vbox);
-    // Add widget to new tab
-    ui->sideTab->addTab(logPage,"Log");
-}
+//void MainWindow::setupLoggingUI(QTextEdit *textEdit)
+//{
+//    // Save to member
+//    debugTextEdit = textEdit;
+//    // Set font size
+//    QFont font = debugTextEdit->font();
+//    font.setPointSize(8);
+//    font.setBold(false);
+//    debugTextEdit->setFont(font);
+//    // Create widget
+//    QWidget *logPage = new QWidget();
+//    // Create V layout
+//    QHBoxLayout *hbox = new QHBoxLayout();
+//    // Create buttons and add to layout
+//    QPushButton *clearLogButton = new QPushButton("Clear");
+//    QPushButton *saveLogButton = new QPushButton("Save to File...");
+//    hbox->addWidget(clearLogButton);
+//    hbox->addWidget(saveLogButton);
+//    // Create signal/slot connections
+//    connect(clearLogButton, SIGNAL(released()), this, SLOT(clearLog()));
+//    connect(saveLogButton, SIGNAL(released()), this, SLOT(saveLog()));
+//    // Create V layout
+//    QVBoxLayout *vbox = new QVBoxLayout();
+//    // Add text edit and buttons to layout
+//    vbox->addWidget(debugTextEdit);
+//    vbox->addLayout(hbox);
+//    // Set layout in widget
+//    logPage->setLayout(vbox);
+//    // Add widget to new tab
+//    ui->sideTab->addTab(logPage,"Log");
+//}
 
 void MainWindow::clearLog()
 {
@@ -121,7 +120,7 @@ void MainWindow::saveLog()
     }
 }
 
-void MainWindow::connectToCamera()
+void MainWindow::cameraConnect()
 {
     // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
     if(ui->actionSynchronizeStreams->isChecked() && deviceNumberMap.size()>0 && sharedImageBuffer->getSyncEnabled())
@@ -219,34 +218,48 @@ void MainWindow::connectToCamera()
     }
 }
 
-void MainWindow::connectToReceiver() { 
+void MainWindow::receiverConnect() {
+    qDebug("Connect to receiver button pressed.");
 
     // Check if XBeeThread has already been created
-    if(!(xBeeThread->isRunning()))
+    /***************** BUG FOUND **********************************/
+     if(xBeeThread == NULL )
+     {
+         QMessageBox::warning(this, "ERROR:","Robot thread non-existent. Connect some robots first.\n");
+     }
+     else
+     {
+        if(!(xBeeThread->isRunning())) //TODO: THIS THROWS SEGMENTATION FAULT!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         {
-        // Display error message
-        QMessageBox::warning(this, "ERROR:","No XBee nodes found.\n\n1. Ensure XBeeThread is already running.\n");
-    }
-    else {
+            qDebug("xBeeThread not running.");
+            // Display error message
+            QMessageBox::warning(this, "ERROR:","No XBee nodes found.\n\n1. Ensure XBeeThread is already running.\n");
+        }
+        else
+        {
+            qDebug("xBeeThread is running.");
+            // Create Control thread
+            controlThread = new ControlThread(xBeeTXPacketBuffer,xBeeThread->xBeeNodeList);
+            connect(controlThread,SIGNAL(controlThreadStopped()),this,SLOT(deleteControlThread()));
+            connect(this,SIGNAL(newGoalPos(int,int)),controlThread,SLOT(updateTarget(int,int)));
+            connect(controlThread,SIGNAL(targetReached()),this, SLOT(updateGoalPos()));
+        }
 
-    // Create Control thread
-    controlThread = new ControlThread(xBeeTXPacketBuffer,xBeeThread->xBeeNodeList);
-    connect(controlThread,SIGNAL(controlThreadStopped()),this,SLOT(deleteControlThread()));
-    connect(this,SIGNAL(newGoalPos(int,int)),controlThread,SLOT(updateTarget(int,int)));
-    connect(controlThread,SIGNAL(targetReached()),this, SLOT(updateGoalPos()));
-    }
+        //Create Render Thread
+        renderThread = new RenderThread(xBeeThread->xBeeNodeList.size());
+        imageView = new ImageView(this);
+        connect(renderThread,SIGNAL(updateTrackingData()),this,SLOT(trackEBug()));
+        connect(renderThread,SIGNAL(newFrame(QImage)),imageView,SLOT(updateFrame(QImage)));
+        connect(renderThread,SIGNAL(newTargetLocation(int,int)),this,SLOT(updateGoal(int,int)));
+        connect(this,SIGNAL(updateTarget()),renderThread,SLOT(updateTargetPosition()));
 
-    //Create Render Thread
-    renderThread = new RenderThread(xBeeThread->xBeeNodeList.size());
-    imageView = new ImageView(this);
-    connect(renderThread,SIGNAL(updateTrackingData()),this,SLOT(trackEBug()));
-    connect(renderThread,SIGNAL(newFrame(QImage)),imageView,SLOT(updateFrame(QImage)));
-    connect(renderThread,SIGNAL(newTargetLocation(int,int)),this,SLOT(updateGoal(int,int)));
-    connect(this,SIGNAL(updateTarget()),renderThread,SLOT(updateTargetPosition()));
-
-    renderThread->start(QThread::TimeCriticalPriority);
-    imageView->show();
+        renderThread->start(QThread::TimeCriticalPriority);
+        imageView->show();
+     }
 }
+
+
+
 
 void MainWindow::disconnectCamera(int index)
 {
@@ -354,7 +367,7 @@ void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
     }
 }
 
-void MainWindow::xBeeConnect()
+void MainWindow::robotsConnect()
 {
     // Show dialog
     if(xBeeConnectDialog->exec()==QDialog::Accepted)
@@ -373,9 +386,9 @@ void MainWindow::xBeeConnect()
             // Start thread
             xBeeThread->start((QThread::Priority) p.threadPriority);
             // Set UI
-            ui->xBeeConnectButton->setEnabled(false);
-            ui->xBeeDisconnectButton->setEnabled(true);
-            ui->xBeeNodeDiscoveryButton->setEnabled(true);
+            ui->btnRobotsConnect->setEnabled(false);
+            ui->btnRobotsDisconnect->setEnabled(true);
+            ui->btnRobotsDiscover->setEnabled(true);
             // Signal/slot connections
             connect(nodeDiscoveryTimer, SIGNAL(timeout()), xBeeThread, SLOT(nodeDiscoveryTimeout()));
             connect(xBeeThread,SIGNAL(newXBeeNodeData(QList<XBeeNode>)),this,SLOT(updateXBeeNodeTable(QList<XBeeNode>)));
@@ -394,7 +407,7 @@ void MainWindow::xBeeConnect()
     }
 }
 
-void MainWindow::xBeeDisconnect()
+void MainWindow::robotsDisconnect()
 {
     qDebug() << "About to stop XBee thread...";
     // Stop XBee thread
@@ -407,12 +420,12 @@ void MainWindow::xBeeDisconnect()
     // Delete XBee thread (closes serial port if open)
     delete xBeeThread;
     // Set UI
-    ui->xBeeConnectButton->setEnabled(true);
-    ui->xBeeDisconnectButton->setEnabled(false);
-    ui->xBeeNodeDiscoveryButton->setEnabled(false);
+    ui->btnRobotsConnect->setEnabled(true);
+    ui->btnRobotsDisconnect->setEnabled(false);
+    ui->btnRobotsDiscover->setEnabled(false);
 }
 
-void MainWindow::doXBeeNodeDiscovery()
+void MainWindow::robotsDiscover()
 {
     // Validate duration
     if(ui->linedRobotsDiscoveryDuration->text().isEmpty())
@@ -435,18 +448,18 @@ void MainWindow::doXBeeNodeDiscovery()
         // Clear node list
         xBeeThread->xBeeNodeList.clear();
         // Clear XBee node table
-        ui->xBeeNodeTable->clearContents();
-        for(int i=0; i<ui->xBeeNodeTable->rowCount(); i++)
-            ui->xBeeNodeTable->removeRow(i);
+        ui->tableRobots->clearContents();
+        for(int i=0; i<ui->tableRobots->rowCount(); i++)
+            ui->tableRobots->removeRow(i);
         // Send Node Discovery packet
         xBeeThread->doNodeDiscovery();
         // Start timer
         nodeDiscoveryTimer->start(1000*duration);
         // Set UI
         ui->linedRobotsDiscoveryDuration->setEnabled(false);
-        ui->xBeeNodeDiscoveryButton->setEnabled(false);
-        ui->xBeeNodeDiscoveryButton->setText("Wait...");
-        ui->xBeeDisconnectButton->setEnabled(false);
+        ui->btnRobotsDiscover->setEnabled(false);
+        ui->btnRobotsDiscover->setText("Wait...");
+        ui->btnRobotsDisconnect->setEnabled(false);
     }
 }
 
@@ -466,7 +479,7 @@ void MainWindow::updateXBeeNodeTable(QList<XBeeNode> xBeeNodeList)
             // Save current node
             XBeeNode node = xBeeNodeList.at(i);
             // Insert row
-            ui->xBeeNodeTable->insertRow(i);
+            ui->tableRobots->insertRow(i);
             // Copy NI string to QString
             QString NI;
             int k=0;
@@ -476,71 +489,71 @@ void MainWindow::updateXBeeNodeTable(QList<XBeeNode> xBeeNodeList)
                 k++;
             }
             // Columns
-            for(int j=0;j<ui->xBeeNodeTable->columnCount();j++)
+            for(int j=0;j<ui->tableRobots->columnCount();j++)
             {
                 switch(j)
                 {
                     // Serial Number
                     case 0:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1%2%3%4").arg(node.SH_high,0,16).arg(node.SH_low,0,16).arg(node.SL_high,0,16).arg(node.SL_low,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1%2%3%4").arg(node.SH_high,0,16).arg(node.SH_low,0,16).arg(node.SL_high,0,16).arg(node.SL_low,0,16)));
                         break;
                     // Network Address
                     case 1:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.MY,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.MY,0,16)));
                         break;
                     // Node ID
                     case 2:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(NI,0));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(NI,0));
                         break;
                     // Parent Network Address
                     case 3:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.parentNetworkAddress,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.parentNetworkAddress,0,16)));
                         break;
                     // Device Type
                     case 4:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.deviceType,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.deviceType,0,16)));
                         break;
                     // Status
                     case 5:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.status,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.status,0,16)));
                         break;
                     // Profile ID
                     case 6:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.profileID,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.profileID,0,16)));
                         break;
                     // Manufacturer ID
                     case 7:
-                        ui->xBeeNodeTable->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.manufacturerID,0,16)));
+                        ui->tableRobots->setItem(i, j, new QTableWidgetItem(QString("%1").arg(node.manufacturerID,0,16)));
                         break;
                  }
             }
         }
         // Resize table
-        ui->xBeeNodeTable->resizeColumnsToContents();
+        ui->tableRobots->resizeColumnsToContents();
     }
     // Set UI
     ui->linedRobotsDiscoveryDuration->setEnabled(true);
-    ui->xBeeNodeDiscoveryButton->setEnabled(true);
-    ui->xBeeNodeDiscoveryButton->setText("Discover Nodes...");
-    ui->xBeeDisconnectButton->setEnabled(true);
-    ui->startControlButton->setEnabled(true);//allow user to start controlling the eBugs
+    ui->btnRobotsDiscover->setEnabled(true);
+    ui->btnRobotsDiscover->setText("Discover Nodes...");
+    ui->btnRobotsDisconnect->setEnabled(true);
+    ui->btnControlStart->setEnabled(true);//allow user to start controlling the eBugs
 }
-#if 1
+
 void MainWindow::trackEBug()
 {
-#if 0
-    QList<EBugData*> eBugDataPtr;
-    for (u_int i = 0;i < this->renderThread->getEBugData().size();i++){
-    ebugdata = new EBugData(this->renderThread->getEBugData()[i]->getID(),this->renderThread->getEBugData()[i]->getPosition(),this->renderThread->getEBugData()[i]->getAngle());
-    eBugDataPtr.append(ebugdata);
-    qDebug() << "EBug's location from MainWindow::trackEBug = ";
-    qDebug() << ebugdata->getPosition.x()<<"\t"<< ebugdata->getPosition.y() << "\n";
-    delete ebugdata;
-    }
-    this->controlThread->setEbugDataVector(eBugDataPtr);
-#else
+
+//    QList<EBugData*> eBugDataPtr;
+//    for (u_int i = 0;i < this->renderThread->getEBugData().size();i++){
+//    ebugdata = new EBugData(this->renderThread->getEBugData()[i]->getID(),this->renderThread->getEBugData()[i]->getPosition(),this->renderThread->getEBugData()[i]->getAngle());
+//    eBugDataPtr.append(ebugdata);
+//    qDebug() << "EBug's location from MainWindow::trackEBug = ";
+//    qDebug() << ebugdata->getPosition.x()<<"\t"<< ebugdata->getPosition.y() << "\n";
+//    delete ebugdata;
+//    }
+//    this->controlThread->setEbugDataVector(eBugDataPtr);
+
     this->controlThread->setEbugDataVector(this->renderThread->getEBugData());
-#endif
+
 
 }
 
@@ -554,54 +567,23 @@ void MainWindow::updateGoalPos()
     emit updateTarget();
 }
 
-/*****************************************Modified by Erwin 20/02/14********************************************************/
-#else
-
-void MainWindow::startTracking()
-{   
-    ui->startTrackingButton->setEnabled(false);
-    ui->stopTrackingButton->setEnabled(true);
-}
-
-// ########## Sherry added 12/06/2013
-void MainWindow::updateTracking(vector<EBugData*> eBugdata)
-{
-    qDebug() << "update tracking";
-    qDebug() << "the number of eBugs tracked" << eBugdata.size();
-
-    //validate the location before updating it
-    if (fabs(eBugdata[0]->position.x()) > 0.01 && fabs(eBugdata[0]->position.y()) > 0.01){
-      this->controlThread->setEbugDataVector(eBugdata);
-    }
-}
-
-void MainWindow::stopTracking()
-{
-    // Insert code here
-
-    // Set UI
-    ui->startTrackingButton->setEnabled(true);
-    ui->stopTrackingButton->setEnabled(false);
-}
-#endif
-
-void MainWindow::startControl()
+void MainWindow::controlStart()
 {
     this->controlThread->initializeEbugDataVector();
     this->controlThread->start(QThread::HighestPriority);//only start controlling the eBug when receiver is connected
 
     // Set UI
-    ui->startControlButton->setEnabled(false);
-    ui->stopControlButton->setEnabled(true);
+    ui->btnControlStart->setEnabled(false);
+    ui->btnControlStop->setEnabled(true);
 
     qDebug() << "control thread started";
 
     // enable tracking
-    ui->startTrackingButton->setEnabled(true);
-    ui->stopTrackingButton->setEnabled(false);
+    ui->btnTrackingStart->setEnabled(true);
+    ui->btnTrackingStop->setEnabled(false);
 }
 
-void MainWindow::stopControl()
+void MainWindow::controlStop()
 {
     // ######### Sherry added 22/06/2013
     // Stop thread
@@ -617,35 +599,23 @@ void MainWindow::deleteControlThread()
     qDebug() << "control thread deleted";
 
     // Set UI
-    ui->startControlButton->setEnabled(true);
-    ui->stopControlButton->setEnabled(false);
+    ui->btnControlStart->setEnabled(true);
+    ui->btnControlStop->setEnabled(false);
 }
 
-void MainWindow::setupTables()
+/**
+ * @brief MainWindow::setupTableTracking
+ * Loads longest possible values into tableTracking and resizes columns, then clears.
+ * Used to set optimal column widths during MainWindow constructor
+ */
+void MainWindow::setupTableTracking()
 {
-    // Local variables
-    QStringList trackingTableHeaderList;
-    QStringList xBeeNodeTableHeaderList;
-    /* Tracking table */
-    // Set column count
-    ui->trackingTable->setColumnCount(4);
-    // Set horizontal header label
-    trackingTableHeaderList<<"ID"<<"X"<<"Y"<<"Angle (degrees)";
-    ui->trackingTable->setHorizontalHeaderLabels(trackingTableHeaderList);
     // Set longest possible length values to set appropriate column width
-    ui->trackingTable->setItem(0, 0, new QTableWidgetItem(("9999")));
-    ui->trackingTable->setItem(0, 1, new QTableWidgetItem(("9999")));
-    ui->trackingTable->setItem(0, 2, new QTableWidgetItem(("9999")));
-    ui->trackingTable->setItem(0, 3, new QTableWidgetItem(("-360.00")));
-    ui->trackingTable->setItem(0, 4, new QTableWidgetItem(("100.00")));
-    ui->trackingTable->resizeColumnsToContents();
-    ui->trackingTable->clearContents();
-    /* XBee Node table */
-    // Set dimensions
-    ui->xBeeNodeTable->setColumnCount(8);
-    // Set horizontal header label
-    xBeeNodeTableHeaderList<<"Serial Number"<<"Network Address"<<"Node ID"<<"Parent Network Address"<<"Device Type"<<"Status"<<"Profile ID"<<"Manufacturer ID";
-    ui->xBeeNodeTable->setHorizontalHeaderLabels(xBeeNodeTableHeaderList);
-    // Resize table
-    ui->xBeeNodeTable->resizeColumnsToContents();
+    ui->tableTracking->setItem(0, 0, new QTableWidgetItem(("9999")));
+    ui->tableTracking->setItem(0, 1, new QTableWidgetItem(("9999")));
+    ui->tableTracking->setItem(0, 2, new QTableWidgetItem(("9999")));
+    ui->tableTracking->setItem(0, 3, new QTableWidgetItem(("-360.00")));
+    ui->tableTracking->setItem(0, 4, new QTableWidgetItem(("100.00")));
+    ui->tableTracking->resizeColumnsToContents();
+    ui->tableTracking->clearContents();
 }

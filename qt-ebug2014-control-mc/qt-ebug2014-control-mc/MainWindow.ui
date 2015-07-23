@@ -19,32 +19,67 @@
   <property name="windowTitle">
    <string>qt-ebug-control-multicamera</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+  <widget class="QWidget" name="widgetMain">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <widget class="QTabWidget" name="tabsCamera">
-      <property name="currentIndex">
-       <number>-1</number>
-      </property>
-      <property name="tabsClosable">
-       <bool>false</bool>
-      </property>
-     </widget>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="btnCameraConnect">
+          <property name="text">
+           <string>Connect to Camera...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerCameraButtons">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnReceiverConnect">
+          <property name="text">
+           <string>Connect to Receiver...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabsCamera">
+        <property name="currentIndex">
+         <number>-1</number>
+        </property>
+        <property name="tabsClosable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QTabWidget" name="sideTab">
+     <widget class="QTabWidget" name="tabsSide">
       <property name="currentIndex">
        <number>1</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tabRobots">
        <attribute name="title">
-        <string>XBee</string>
+        <string>Robots</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <layout class="QHBoxLayout" name="layoutRobotsConnectButtons">
           <item>
-           <widget class="QPushButton" name="xBeeConnectButton">
+           <widget class="QPushButton" name="btnRobotsConnect">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -61,7 +96,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="xBeeDisconnectButton">
+           <widget class="QPushButton" name="btnRobotsDisconnect">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -80,16 +115,16 @@
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line_5">
+         <widget class="Line" name="lineRobotsDivider">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_13">
+         <layout class="QHBoxLayout" name="layoutRobotsDiscover">
           <item>
-           <widget class="QPushButton" name="xBeeNodeDiscoveryButton">
+           <widget class="QPushButton" name="btnRobotsDiscover">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -104,7 +139,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="labelRobotsDuration">
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -130,7 +165,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="labelRobotsSecs">
             <property name="font">
              <font>
               <pointsize>8</pointsize>
@@ -146,7 +181,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableWidget" name="xBeeNodeTable">
+         <widget class="QTableWidget" name="tableRobots">
           <property name="font">
            <font>
             <pointsize>8</pointsize>
@@ -155,6 +190,46 @@
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
+          <column>
+           <property name="text">
+            <string>Serial Number</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Network Address</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Node ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Parent Network Address</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Device Type</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Status</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Profile ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Manufacturer ID</string>
+           </property>
+          </column>
          </widget>
         </item>
        </layout>
@@ -165,9 +240,9 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <layout class="QHBoxLayout" name="layoutTrackingStartStopButtons">
           <item>
-           <widget class="QPushButton" name="startTrackingButton">
+           <widget class="QPushButton" name="btnTrackingStart">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -184,7 +259,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="stopTrackingButton">
+           <widget class="QPushButton" name="btnTrackingStop">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -203,14 +278,14 @@
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line">
+         <widget class="Line" name="lineTrackingDivider">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QTableWidget" name="trackingTable">
+         <widget class="QTableWidget" name="tableTracking">
           <property name="font">
            <font>
             <pointsize>8</pointsize>
@@ -219,19 +294,39 @@
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>X</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Angle (degrees)</string>
+           </property>
+          </column>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="Control">
+      <widget class="QWidget" name="tabControl">
        <attribute name="title">
         <string>Control</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="layoutControl">
           <item>
-           <widget class="QPushButton" name="startControlButton">
+           <widget class="QPushButton" name="btnControlStart">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -248,7 +343,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="stopControlButton">
+           <widget class="QPushButton" name="btnControlStop">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -354,15 +449,15 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>sideTab</tabstop>
-  <tabstop>xBeeConnectButton</tabstop>
-  <tabstop>xBeeDisconnectButton</tabstop>
-  <tabstop>xBeeNodeDiscoveryButton</tabstop>
+  <tabstop>tabsSide</tabstop>
+  <tabstop>btnRobotsConnect</tabstop>
+  <tabstop>btnRobotsDisconnect</tabstop>
+  <tabstop>btnRobotsDiscover</tabstop>
   <tabstop>linedRobotsDiscoveryDuration</tabstop>
-  <tabstop>xBeeNodeTable</tabstop>
-  <tabstop>startTrackingButton</tabstop>
-  <tabstop>stopTrackingButton</tabstop>
-  <tabstop>trackingTable</tabstop>
+  <tabstop>tableRobots</tabstop>
+  <tabstop>btnTrackingStart</tabstop>
+  <tabstop>btnTrackingStop</tabstop>
+  <tabstop>tableTracking</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -69,7 +69,7 @@ class SharedImageBuffer
         QWaitCondition wc;
         QMutex mutex;
         int nArrived;
-        bool doSync;
+        bool syncEnabled;
 };
 
 #endif // SHAREDIMAGEBUFFER_H

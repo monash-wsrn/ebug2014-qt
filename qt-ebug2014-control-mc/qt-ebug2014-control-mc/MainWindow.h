@@ -66,12 +66,10 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
-        void setupLoggingUI(QTextEdit *textEdit);
+        //void setupLoggingUI(QTextEdit *textEdit);
 
     private:
         Ui::MainWindow *ui;
-        QPushButton *connectToCameraButton;
-        QPushButton *connectToReceiverButton;// added by Erwin 20/02/14
         QMap<int, int> deviceNumberMap;
         QMap<int, CameraView*> cameraViewMap;
         SharedImageBuffer *sharedImageBuffer;
@@ -79,36 +77,34 @@ class MainWindow : public QMainWindow
         XBeeConnectDialog *xBeeConnectDialog;
         ImageView *imageView; // added by Erwin 20/02/14
         RenderThread *renderThread;// added by Erwin 20/02/14
-        XBeeThread *xBeeThread;
+        XBeeThread *xBeeThread = NULL;
         QTimer *nodeDiscoveryTimer;
         ControlThread *controlThread;
         QTextEdit *debugTextEdit;
         bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
         void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
-        void setupTables();
+        void setupTableTracking();
         void newBlankCameraTab();
 
     public slots:
-        void connectToCamera();
-        void connectToReceiver();// added by Erwin 20/02/14
+        void cameraConnect();
+        void receiverConnect();// added by Erwin 20/02/14
         void disconnectCamera(int index);
         void showAboutDialog();
-        void xBeeConnect();
-        void xBeeDisconnect();
+        void robotsConnect();
+        void robotsDisconnect();
         void updateXBeeNodeTable(QList<XBeeNode> xBeeNodeList);
         void trackEBug();
         void updateGoal(int x, int y); //from RenderThread to THIS
         void updateGoalPos();   //from controlThread to THIS
-#if 0
-        void startTracking();
-        void updateTracking(vector<EBugData*>);
-        void stopTracking();
-#endif
-        void startControl();// modified by Erwin 20/02/14
-        void stopControl();// modified by Erwin 20/02/14
+//        void startTracking();
+//        void updateTracking(vector<EBugData*>);
+//        void stopTracking();
+        void controlStart();// modified by Erwin 20/02/14
+        void controlStop();// modified by Erwin 20/02/14
         void deleteControlThread();// added by Erwin 20/02/14
-        void doXBeeNodeDiscovery();
+        void robotsDiscover();
         void clearLog();
         void saveLog();
 
