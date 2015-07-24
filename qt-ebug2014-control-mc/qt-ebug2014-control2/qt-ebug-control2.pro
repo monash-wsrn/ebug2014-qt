@@ -20,7 +20,8 @@ SOURCES += main.cpp\
 HEADERS  += \
     windowMain.h \
     threadWorld.h \
-    ThreadableQObject.h
+    ThreadableQObject.h \
+    dataRobot.h
 
 FORMS    += \
     windowMain.ui

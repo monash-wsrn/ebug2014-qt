@@ -1,5 +1,12 @@
 #include "threadWorld.h"
+#include "dataRobot.h"
 
+/**
+ * @brief ThreadWorld::ThreadWorld
+ * Constructor of the World Thread object.
+ * This manages the spawning of new communication
+ * and robot threads and the interactions with the GUI
+ */
 ThreadWorld::ThreadWorld() :
     ThreadableQObject()
 {
@@ -11,6 +18,9 @@ ThreadWorld::ThreadWorld() :
  * Processing thread of world. Has no function.
  */
 void ThreadWorld::run(){
+    dataRobot data;
+    data.robotId = 5;
+    data.worldOrientation = 2;
     forever{
         qDebug("World Thread Running");
         uiWorldEventNew("World ticking.");
