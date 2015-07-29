@@ -36,6 +36,9 @@ MessageTranslator::MessageTranslator(QObject *parent) :
 void MessageTranslator::newMsg(QByteArray btyarrMessage)
 {
     qDebug("Got new message to translate");
+
+
+
 //    for(int i=0; i<btyarrMessage.size(); i++)
 //    {
 //        if(btyarrMessage.at(i)!=0)

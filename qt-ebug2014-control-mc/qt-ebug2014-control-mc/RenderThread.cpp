@@ -191,10 +191,12 @@ void RenderThread::run()
                 vector<eBug> eBugs;
 
                 int count = 0; //initialise to 0 every iteration
-                cam.read((char*)& n,sizeof n);
-                if(n>0xff)
-                    continue;
-                cam.read((char*)blob,n*4);
+                cam.read((char*)& n,sizeof n); // Get one 32bit char
+
+                if(n>0xff) // n>dec255
+                    continue;//Skips rest of while loop
+
+                cam.read((char*)blob,n*4); // Put n*4 bytes into blob (32bit array)
 
 
                 if(n==1 and (blob[0]>>23)==500) {
