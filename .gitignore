@@ -1,0 +1,9 @@
+# Exclude Qt user settings
+*.pro.user*
+
+# Exclude backup files
+*.autosave
+*~
+
+# Exclude compilation folder
+*Desktop*Debug/
