@@ -15,13 +15,20 @@ TEMPLATE = app
 SOURCES += main.cpp\
         debugMessageHandler.cpp \
     windowMain.cpp \
-    threadWorld.cpp
+    threadWorld.cpp \
+    dialogCommsInAdd.cpp \
+    CommsInDevices/commsInDeviceText.cpp
 
 HEADERS  += \
     windowMain.h \
     threadWorld.h \
     ThreadableQObject.h \
-    dataRobot.h
+    CommsInDevices/CommsIn.h \
+    dataRobotLocation.h \
+    dialogCommsInAdd.h \
+    CommsInDevices/commsInDeviceText.h
 
 FORMS    += \
-    windowMain.ui
+    windowMain.ui \
+    dialogCommsInAdd.ui \
+    CommsInDevices/commsInDeviceText.ui

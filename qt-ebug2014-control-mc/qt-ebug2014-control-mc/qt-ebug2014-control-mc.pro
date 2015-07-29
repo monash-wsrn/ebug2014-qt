@@ -40,7 +40,6 @@ SOURCES += main.cpp \
     ControlThread.cpp   \
     control-algorithms/FormationSelection.cpp \
     control-algorithms/Demo.cpp \
-    EBugData.cpp \
     RenderThread.cpp \
     ImageView.cpp \
     PIDController.cpp \
@@ -71,7 +70,8 @@ HEADERS  += \
     LedDetection.h \
     RenderThread.h \
     ImageView.h \
-    PIDController.h
+    PIDController.h \
+    Eigen/Dense
 
 FORMS    += \
     MainWindow.ui \

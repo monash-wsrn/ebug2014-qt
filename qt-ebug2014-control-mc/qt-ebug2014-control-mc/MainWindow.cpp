@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sharedImageBuffer = new SharedImageBuffer();
     // Create dialog
     xBeeConnectDialog = new XBeeConnectDialog(this);
+
     // Create timer
     nodeDiscoveryTimer = new QTimer(this);
     // Set timer as single shot
@@ -41,13 +42,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     // Connect buttons to dialogs/actions
-    connect(ui->btnReceiverConnect,SIGNAL(released()),this, SLOT(receiverConnect()));
-    connect(ui->btnCameraConnect,SIGNAL(released()),this, SLOT(cameraConnect()));
-    connect(ui->btnRobotsConnect, SIGNAL(released()), this, SLOT(robotsConnect()));
-    connect(ui->btnRobotsDisconnect, SIGNAL(released()), this, SLOT(robotsDisconnect()));
-    connect(ui->btnControlStart, SIGNAL(released()), this, SLOT(controlStart()));
-    connect(ui->btnControlStop, SIGNAL(released()), this, SLOT(controlStop()));
-    connect(ui->btnRobotsDiscover, SIGNAL(released()), this, SLOT(robotsDiscover()));
+    connect(ui->btnReceiverConnect,SIGNAL(released()),this, SLOT(on_btnReceiverConnect()));
+    connect(ui->btnCameraConnect,SIGNAL(released()),this, SLOT(on_btnCameraConnect()));
+    connect(ui->btnRobotsConnect, SIGNAL(released()), this, SLOT(on_btnRobotsConnect()));
+    connect(ui->btnRobotsDisconnect, SIGNAL(released()), this, SLOT(on_btnRobotsDisconnect()));
+    connect(ui->btnControlStart, SIGNAL(released()), this, SLOT(on_btnControlStart()));
+    connect(ui->btnControlStop, SIGNAL(released()), this, SLOT(on_btnControlStop()));
+    connect(ui->btnRobotsDiscover, SIGNAL(released()), this, SLOT(on_btnRobotsDiscover()));
 
     //Connect menu actions
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
@@ -119,8 +120,16 @@ void MainWindow::saveLog()
         ffile.close();
     }
 }
-
-void MainWindow::cameraConnect()
+/**
+ * @brief MainWindow::cameraConnect
+ * Trigged by Connect to camera... button.
+ * Opens the Camera Connect Dialog and
+ * attempts to connect to the selected camera.
+ * This is shown in a new camera tab and stored in the
+ * caeraViewMap[] list. An image buffer is added to the SharedImageBuffer
+ * and the camera is connected to. Syncronisation starts if the user confirms.
+ */
+void MainWindow::on_btnCameraConnect()
 {
     // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
     if(ui->actionSynchronizeStreams->isChecked() && deviceNumberMap.size()>0 && sharedImageBuffer->getSyncEnabled())
@@ -131,8 +140,7 @@ void MainWindow::cameraConnect()
                                        "Please close all currently open streams before attempting to open a new stream."),
                                         QMessageBox::Ok);
     }
-    // Attempt to connect to camera
-    else
+    else // Attempt to connect to camera
     {
         // Get next tab index
         int nextTabIndex = (deviceNumberMap.size()==0) ? 0 : ui->tabsCamera->count();
@@ -218,44 +226,41 @@ void MainWindow::cameraConnect()
     }
 }
 
-void MainWindow::receiverConnect() {
-    qDebug("Connect to receiver button pressed.");
+/**
+ * @brief MainWindow::on_btnReceiverConnect
+ * Trigged when Connect to receiver button pressed.
+ * Ensures xBeeThread is running then spawns a new control thread
+ * and connects it to the ui.
+ * Starts a new Render Thread and ImageView UI
+ * and connects them to the ui.
+ */
+void MainWindow::on_btnReceiverConnect() {
+    if(!(xBeeThread->isRunning())) //Warning, xBeeThread may not be defined
+    {
+        qDebug("xBeeThread not running.");
+        // Display error message
+        QMessageBox::warning(this, "ERROR:","No XBee nodes found.\n\n1. Ensure XBeeThread is already running.\n");
+    }
+    else
+    {
+        qDebug("xBeeThread is running.");
+        // Create Control thread
+        controlThread = new ControlThread(xBeeTXPacketBuffer,xBeeThread->getXBeeNodeList()); //TODO: Needs mutex protection
+        connect(controlThread,SIGNAL(controlThreadStopped()),this,SLOT(deleteControlThread()));
+        connect(this,SIGNAL(newGoalPos(int,int)),controlThread,SLOT(updateTarget(int,int)));
+        connect(controlThread,SIGNAL(targetReached()),this, SLOT(updateGoalPos()));
+    }
 
-    // Check if XBeeThread has already been created
-    /***************** BUG FOUND **********************************/
-     if(xBeeThread == NULL )
-     {
-         QMessageBox::warning(this, "ERROR:","Robot thread non-existent. Connect some robots first.\n");
-     }
-     else
-     {
-        if(!(xBeeThread->isRunning())) //TODO: THIS THROWS SEGMENTATION FAULT!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        {
-            qDebug("xBeeThread not running.");
-            // Display error message
-            QMessageBox::warning(this, "ERROR:","No XBee nodes found.\n\n1. Ensure XBeeThread is already running.\n");
-        }
-        else
-        {
-            qDebug("xBeeThread is running.");
-            // Create Control thread
-            controlThread = new ControlThread(xBeeTXPacketBuffer,xBeeThread->xBeeNodeList);
-            connect(controlThread,SIGNAL(controlThreadStopped()),this,SLOT(deleteControlThread()));
-            connect(this,SIGNAL(newGoalPos(int,int)),controlThread,SLOT(updateTarget(int,int)));
-            connect(controlThread,SIGNAL(targetReached()),this, SLOT(updateGoalPos()));
-        }
+    //Create Render Thread
+    renderThread = new RenderThread(xBeeThread->getXBeeNodeListSize());
+    imageView = new ImageView(this);
+    connect(renderThread,SIGNAL(updateTrackingData()),this,SLOT(trackEBug()));
+    connect(renderThread,SIGNAL(newFrame(QImage)),imageView,SLOT(updateFrame(QImage)));
+    connect(renderThread,SIGNAL(newTargetLocation(int,int)),this,SLOT(updateGoal(int,int)));
+    connect(this,SIGNAL(updateTarget()),renderThread,SLOT(updateTargetPosition()));
 
-        //Create Render Thread
-        renderThread = new RenderThread(xBeeThread->xBeeNodeList.size());
-        imageView = new ImageView(this);
-        connect(renderThread,SIGNAL(updateTrackingData()),this,SLOT(trackEBug()));
-        connect(renderThread,SIGNAL(newFrame(QImage)),imageView,SLOT(updateFrame(QImage)));
-        connect(renderThread,SIGNAL(newTargetLocation(int,int)),this,SLOT(updateGoal(int,int)));
-        connect(this,SIGNAL(updateTarget()),renderThread,SLOT(updateTargetPosition()));
-
-        renderThread->start(QThread::TimeCriticalPriority);
-        imageView->show();
-     }
+    renderThread->start(QThread::TimeCriticalPriority);
+    imageView->show();
 }
 
 
@@ -367,7 +372,14 @@ void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
     }
 }
 
-void MainWindow::robotsConnect()
+/**
+ * @brief MainWindow::on_btnRobotsConnect
+ * Trigged by the Robots->Connect button.
+ * Opens the dialog to connect to xBee serial device
+ * and spawns a xBeeThread to manage connections based
+ * on input settings.
+ */
+void MainWindow::on_btnRobotsConnect()
 {
     // Show dialog
     if(xBeeConnectDialog->exec()==QDialog::Accepted)
@@ -375,20 +387,21 @@ void MainWindow::robotsConnect()
         // Store settings from UI
         xBeeConnectDialog->updateSettings();
         // Get settings
-        XBeeConnectDialog::Settings p = xBeeConnectDialog->settings();
+        XBeeConnectDialog::Settings settingsXBeeDialog = xBeeConnectDialog->settings();
         // Creates a buffer which stores XBee TX packet
-        xBeeTXPacketBuffer = new Buffer<QByteArray>(p.txPacketBufferSize);
+        xBeeTXPacketBuffer = new Buffer<QByteArray>(settingsXBeeDialog.txPacketBufferSize);
         // Create XBee thread
-        xBeeThread = new XBeeThread(xBeeTXPacketBuffer, p);
+        xBeeThread = new XBeeThread(xBeeTXPacketBuffer, settingsXBeeDialog);
         // Successful serial connect
-        if(xBeeThread->port->isOpen())
+        if(xBeeThread->getPortIsOpen())
         {
             // Start thread
-            xBeeThread->start((QThread::Priority) p.threadPriority);
+            xBeeThread->start((QThread::Priority) settingsXBeeDialog.threadPriority);
             // Set UI
             ui->btnRobotsConnect->setEnabled(false);
             ui->btnRobotsDisconnect->setEnabled(true);
             ui->btnRobotsDiscover->setEnabled(true);
+            ui->btnReceiverConnect->setEnabled(true);
             // Signal/slot connections
             connect(nodeDiscoveryTimer, SIGNAL(timeout()), xBeeThread, SLOT(nodeDiscoveryTimeout()));
             connect(xBeeThread,SIGNAL(newXBeeNodeData(QList<XBeeNode>)),this,SLOT(updateXBeeNodeTable(QList<XBeeNode>)));
@@ -402,12 +415,12 @@ void MainWindow::robotsConnect()
             // Delete XBee TX packet buffer object
             delete xBeeTXPacketBuffer;
             // Show message box
-            QMessageBox::critical(this, tr("Error"), xBeeThread->port->errorString());
+            QMessageBox::critical(this, tr("Serial connection failed."), xBeeThread->getPortErrorString());
         }
     }
 }
 
-void MainWindow::robotsDisconnect()
+void MainWindow::on_btnRobotsDisconnect()
 {
     qDebug() << "About to stop XBee thread...";
     // Stop XBee thread
@@ -423,9 +436,10 @@ void MainWindow::robotsDisconnect()
     ui->btnRobotsConnect->setEnabled(true);
     ui->btnRobotsDisconnect->setEnabled(false);
     ui->btnRobotsDiscover->setEnabled(false);
+    ui->btnReceiverConnect->setEnabled(false);
 }
 
-void MainWindow::robotsDiscover()
+void MainWindow::on_btnRobotsDiscover()
 {
     // Validate duration
     if(ui->linedRobotsDiscoveryDuration->text().isEmpty())
@@ -446,7 +460,7 @@ void MainWindow::robotsDiscover()
     else
     {
         // Clear node list
-        xBeeThread->xBeeNodeList.clear();
+        xBeeThread->xBeeNodeListClear();
         // Clear XBee node table
         ui->tableRobots->clearContents();
         for(int i=0; i<ui->tableRobots->rowCount(); i++)
@@ -567,7 +581,7 @@ void MainWindow::updateGoalPos()
     emit updateTarget();
 }
 
-void MainWindow::controlStart()
+void MainWindow::on_btnControlStart()
 {
     this->controlThread->initializeEbugDataVector();
     this->controlThread->start(QThread::HighestPriority);//only start controlling the eBug when receiver is connected
@@ -583,7 +597,7 @@ void MainWindow::controlStart()
     ui->btnTrackingStop->setEnabled(false);
 }
 
-void MainWindow::controlStop()
+void MainWindow::on_btnControlStop()
 {
     // ######### Sherry added 22/06/2013
     // Stop thread

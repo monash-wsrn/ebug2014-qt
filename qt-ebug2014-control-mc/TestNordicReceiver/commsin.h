@@ -2,16 +2,29 @@
 #define COMMSIN_H
 
 #include <QObject>
+#include <QtSerialPort>
 
-class CommsIn : public QObject
+#include "ThreadableQObject.h"
+
+class CommsIn : public ThreadableQObject
 {
     Q_OBJECT
+
+private:
+    QSerialPort* port;
+
 public:
-    explicit CommsIn(QObject *parent = 0);
+    explicit CommsIn(QString strPortName);
+    ~CommsIn();
+    QStringList getPortInfo();
+
+private slots:
+    void read();
 
 signals:
-
+    void newMsg(QByteArray);
 public slots:
+    void run();
 
 };
 

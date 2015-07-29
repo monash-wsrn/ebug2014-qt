@@ -47,6 +47,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="btnReceiverConnect">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Connect to Receiver...</string>
           </property>
@@ -69,7 +72,7 @@
     <item>
      <widget class="QTabWidget" name="tabsSide">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabRobots">
        <attribute name="title">

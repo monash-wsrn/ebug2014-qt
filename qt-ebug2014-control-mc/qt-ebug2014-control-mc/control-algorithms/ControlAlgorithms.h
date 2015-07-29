@@ -9,7 +9,6 @@
 
 #include "Config.h"
 #include <ebug-api-cpp/eBugAPI.h>
-#include "XBeeThread.h"
 class ControlAlgorithms {
 
 public:

@@ -13,12 +13,12 @@
 #include "EBugData.h"
 #include "Config.h"
 #include <ebug-api-cpp/eBugAPI.h>
-#include "XBeeThread.h"
 #include <stdint.h>
 #include <fstream>
 #include <control-algorithms/ControlAlgorithms.h>
 #include "PIDController.h"
 #include <unistd.h> //TODO: Added by MatthewBoys
+#include <Buffer.h>
 
 
 using namespace std;

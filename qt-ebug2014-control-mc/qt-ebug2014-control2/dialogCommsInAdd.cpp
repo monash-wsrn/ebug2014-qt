@@ -1,5 +1,5 @@
-#include "dialogcommsinadd.h"
-#include "ui_dialogcommsinadd.h"
+#include "dialogCommsInAdd.h"
+#include "ui_dialogCommsInAdd.h"
 
 dialogCommsInAdd::dialogCommsInAdd(QWidget *parent) :
     QDialog(parent),

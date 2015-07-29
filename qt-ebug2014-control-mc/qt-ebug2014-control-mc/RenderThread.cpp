@@ -192,23 +192,28 @@ void RenderThread::run()
 
                 int count = 0; //initialise to 0 every iteration
                 cam.read((char*)& n,sizeof n);
-                if(n>0xff) continue;
+                if(n>0xff)
+                    continue;
                 cam.read((char*)blob,n*4);
 
 
-                if(n==1 and (blob[0]>>23)==500) {cout<<"died\n";break;}
+                if(n==1 and (blob[0]>>23)==500) {
+                    cout<<"died\n";
+                    break;
+                }
 
 
                 grabbedFrame=Scalar(255,255,255);
                 for(u_int i=0;i<n;i++)
-                   {
-                      float x=blob[i]<<21>>21;
-                      float y=blob[i]<<11>>22;
-                      u_int8_t colour=blob[i]<<9>>30;
-                      float radius=blob[i]>>23;
-                      points[i]={x,y,radius,colour};
-                      if(radius and colour<3) circle(grabbedFrame,Point2f(WIDTH-x,y)*SCALE,radius/4*SCALE,colours[colour],-1,CV_AA);
-                   }
+                {
+                  float x=blob[i]<<21>>21;
+                  float y=blob[i]<<11>>22;
+                  u_int8_t colour=blob[i]<<9>>30;
+                  float radius=blob[i]>>23;
+                  points[i]={x,y,radius,colour};
+                  if(radius and colour<3)
+                      circle(grabbedFrame,Point2f(WIDTH-x,y)*SCALE,radius/4*SCALE,colours[colour],-1,CV_AA);
+                }
 
                 if(n>=5) knn_graph_partition(n,eBugs,count);
                 image = MatToQImage(grabbedFrame); // convert the image format from cv::Mat to QImage

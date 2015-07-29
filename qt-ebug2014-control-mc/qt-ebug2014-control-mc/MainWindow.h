@@ -77,7 +77,7 @@ class MainWindow : public QMainWindow
         XBeeConnectDialog *xBeeConnectDialog;
         ImageView *imageView; // added by Erwin 20/02/14
         RenderThread *renderThread;// added by Erwin 20/02/14
-        XBeeThread *xBeeThread = NULL;
+        XBeeThread *xBeeThread;
         QTimer *nodeDiscoveryTimer;
         ControlThread *controlThread;
         QTextEdit *debugTextEdit;
@@ -87,26 +87,28 @@ class MainWindow : public QMainWindow
         void setupTableTracking();
         void newBlankCameraTab();
 
+    private slots:
+        void on_btnCameraConnect();
+        void on_btnReceiverConnect();
+        void on_btnRobotsConnect();
+        void on_btnRobotsDisconnect();
+        void on_btnControlStart();// modified by Erwin 20/02/14
+        void on_btnControlStop();// modified by Erwin 20/02/14
+        void on_btnRobotsDiscover();
+
     public slots:
-        void cameraConnect();
-        void receiverConnect();// added by Erwin 20/02/14
         void disconnectCamera(int index);
         void showAboutDialog();
-        void robotsConnect();
-        void robotsDisconnect();
         void updateXBeeNodeTable(QList<XBeeNode> xBeeNodeList);
         void trackEBug();
         void updateGoal(int x, int y); //from RenderThread to THIS
         void updateGoalPos();   //from controlThread to THIS
+        void deleteControlThread();// added by Erwin 20/02/14
+        void clearLog();
+        void saveLog();
 //        void startTracking();
 //        void updateTracking(vector<EBugData*>);
 //        void stopTracking();
-        void controlStart();// modified by Erwin 20/02/14
-        void controlStop();// modified by Erwin 20/02/14
-        void deleteControlThread();// added by Erwin 20/02/14
-        void robotsDiscover();
-        void clearLog();
-        void saveLog();
 
     signals:
         void newGoalPos(int x, int y);  //from THIS to ControlThread

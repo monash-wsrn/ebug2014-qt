@@ -1,56 +1,27 @@
-// $Revision: 422 $
-// $Date: 2013-08-11 20:09:38 +1000 (Sun, 11 Aug 2013) $
-// $Author: nickdademo@gmail.com $
-/************************************************************************/
-/* qt-opencv-multithreaded:                                             */
-/* A multithreaded OpenCV application using the Qt framework.           */
-/*                                                                      */
-/* XBeeThread.cpp                                                       */
-/*                                                                      */
-/* Nick D'Ademo <nickdademo@gmail.com>                                  */
-/*                                                                      */
-/* Copyright (c) 2012-2013 Nick D'Ademo                                 */
-/*                                                                      */
-/* Permission is hereby granted, free of charge, to any person          */
-/* obtaining a copy of this software and associated documentation       */
-/* files (the "Software"), to deal in the Software without restriction, */
-/* including without limitation the rights to use, copy, modify, merge, */
-/* publish, distribute, sublicense, and/or sell copies of the Software, */
-/* and to permit persons to whom the Software is furnished to do so,    */
-/* subject to the following conditions:                                 */
-/*                                                                      */
-/* The above copyright notice and this permission notice shall be       */
-/* included in all copies or substantial portions of the Software.      */
-/*                                                                      */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,      */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF   */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                */
-/* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS  */
-/* BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN   */
-/* ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN    */
-/* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE     */
-/* SOFTWARE.                                                            */
-/*                                                                      */
-/************************************************************************/
+/***************************************
+ * Extends QThread to manage XBee serial
+ * connections to a group of robots. Port
+ *  settings defined by constructor parameter.
+ * *************************************/
 
 #include "XBeeThread.h"
 
-XBeeThread::XBeeThread(Buffer<QByteArray> *txPacketBuffer, XBeeConnectDialog::Settings p) : QThread(), txPacketBuffer(txPacketBuffer)
+XBeeThread::XBeeThread(Buffer<QByteArray> *txPacketBuffer, XBeeConnectDialog::Settings userSettings) : QThread(), txPacketBuffer(txPacketBuffer)
 {
     // Initialize members
     doStop=false;
-    this->threadSleep_ms = p.threadSleep_ms;
+    this->threadSleep_ms = userSettings.threadSleep_ms;
     // Attempt to open serial port
     port = new QSerialPort();
-    port->setPortName(p.name);
+    port->setPortName(userSettings.name);
     if(port->open(QIODevice::ReadWrite))
     {
-        // Set serial parameters
-        if (port->setBaudRate(p.baudRate)
-                && port->setDataBits(p.dataBits)
-                && port->setParity(p.parity)
-                && port->setStopBits(p.stopBits)
-                && port->setFlowControl(p.flowControl))
+        // Set serial parametersd
+        if (port->setBaudRate(userSettings.baudRate)
+                && port->setDataBits(userSettings.dataBits)
+                && port->setParity(userSettings.parity)
+                && port->setStopBits(userSettings.stopBits)
+                && port->setFlowControl(userSettings.flowControl))
         {
             // Signal/slot connection for serial RX
             connect(port, SIGNAL(readyRead()), this, SLOT(slotRead()));
@@ -59,6 +30,7 @@ XBeeThread::XBeeThread(Buffer<QByteArray> *txPacketBuffer, XBeeConnectDialog::Se
         }
         // Parameters could not set: close port
         else
+            qDebug("Could not set serial port parameter. Closing port.");
             port->close();
     }
 
@@ -301,4 +273,55 @@ void XBeeThread::nodeDiscoveryTimeout()
     QMutexLocker locker(&protectXBeeNodeList);
     // Send data to controlThread and GUI thread
     emit newXBeeNodeData(xBeeNodeList);
+}
+
+/**
+ * @brief XBeeThread::getPortErrorString
+ * Get the QIODevice error of connected port
+ *  in human-readable form
+ * @return String of human-readable last error
+ */
+QString XBeeThread::getPortErrorString(){
+    return port->errorString();
+}
+
+/**
+ * @brief XBeeThread::getPortIsOpen
+ * Retrive the QIODevice isOpen state of connected port.
+ * @return boolean showing isOpen state of port
+ */
+bool XBeeThread::getPortIsOpen(){
+    return port->isOpen();
+}
+
+/**
+ * @brief XBeeThread::getXBeeNodeListSize
+ * Asks for the size of XBeeNodeList with mutex protection
+ * @return size() of xBeeNodeList
+ */
+int XBeeThread::getXBeeNodeListSize(){
+    // Wait for current node discovery iteration to finish (if in progress)
+    QMutexLocker locker(&protectXBeeNodeList);
+    return xBeeNodeList.size();
+}
+
+/**
+ * @brief XBeeThread::getXBeeNodeList
+ * Returns a copy of the XBeeNode data with mutex locker protection
+ * @return Copy of the xBeeNodeList
+ */
+QList<XBeeNode> XBeeThread::getXBeeNodeList(){
+    // Wait for current node discovery iteration to finish (if in progress)
+    QMutexLocker locker(&protectXBeeNodeList);
+    return xBeeNodeList;
+}
+
+/**
+ * @brief XBeeThread::xBeeNodeListClear
+ * Initiates the clear function of the xBeeNodeList with mutex protection
+ */
+void XBeeThread::xBeeNodeListClear(){
+    // Wait for current node discovery iteration to finish (if in progress)
+    QMutexLocker locker(&protectXBeeNodeList);
+    xBeeNodeList.clear();
 }

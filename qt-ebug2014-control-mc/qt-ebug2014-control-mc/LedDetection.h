@@ -371,7 +371,8 @@ void knn_graph_partition(uint8 n_blobs,std::vector<eBug> &eBugsInfo,int &count) 
             auto v=q.front();
             q.pop();
 
-            if(not done[v]) done[v]=true,component.push_back(v);
+            if(not done[v])
+                done[v]=true,component.push_back(v);
             for(auto j:knngraph[v])
                 if(not done[j]) q.push(j);
         }

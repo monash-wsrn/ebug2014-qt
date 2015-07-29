@@ -1,17 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>commsInDeviceText</class>
- <widget name="commsInDeviceText" class="QDialog">
+ <widget class="QDialog" name="commsInDeviceText">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>236</width>
+    <height>143</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelIDInfo">
+     <property name="text">
+      <string>Robot ID:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="linedID"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="labelPossX">
+     <property name="text">
+      <string>X Possition:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="linedPosX"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelPosY">
+     <property name="text">
+      <string>Y Possition:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="linedPosY"/>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="labelOrientationInfo">
+     <property name="text">
+      <string>Orientation:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="linedOrientation"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QPushButton" name="btnSend">
+     <property name="text">
+      <string>Send message</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

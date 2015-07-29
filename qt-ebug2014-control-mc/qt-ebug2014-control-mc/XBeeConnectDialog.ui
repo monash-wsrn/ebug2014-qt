@@ -31,251 +31,226 @@
   <property name="windowTitle">
    <string>Connect to XBee</string>
   </property>
-  <widget class="QGroupBox" name="selectBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>251</width>
-     <height>181</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Serial Port:</string>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="5" column="0" colspan="2">
-     <widget class="QLabel" name="pidLabel">
-      <property name="text">
-       <string>Product ID:</string>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="selectBox">
+     <property name="title">
+      <string>Serial Port:</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0">
+       <widget class="QComboBox" name="serialPortInfoListBox"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="detectPushButton">
+        <property name="text">
+         <string>Detect</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="locationLabelInfo">
+        <property name="text">
+         <string>Location:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="locationLabel">
+        <property name="text">
+         <string>Location:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="vidLabelInfo">
+        <property name="text">
+         <string>Vendor ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="vidLabel">
+        <property name="text">
+         <string>Vendor ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="descriptionLabelInfo">
+        <property name="text">
+         <string>Description:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="descriptionLabel">
+        <property name="text">
+         <string>Description:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="manufacturerLabelInfo">
+        <property name="text">
+         <string>Manufacturer:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="manufacturerLabel">
+        <property name="text">
+         <string>Manufacturer:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="pidLabelInfo">
+        <property name="text">
+         <string>Product ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="pidLabel">
+        <property name="text">
+         <string>Product ID:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="parametersBox">
+     <property name="title">
+      <string>Parameters:</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_3">
+      <item row="0" column="0">
+       <widget class="QLabel" name="baudRateLabel">
+        <property name="text">
+         <string>Baud Rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="baudRateBox"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="dataBitsLabel">
+        <property name="text">
+         <string>Data Bits:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="dataBitsBox"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="parityLabel">
+        <property name="text">
+         <string>Parity:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="parityBox"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="stopBitsLabel">
+        <property name="text">
+         <string>Stop Bits:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="stopBitsBox"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="flowControlLabel">
+        <property name="text">
+         <string>Flow Control:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="flowControlBox"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="otherSettingsBox">
+     <property name="title">
+      <string>Other Settings:</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_4">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="2">
-     <widget class="QLabel" name="manufacturerLabel">
-      <property name="text">
-       <string>Manufacturer:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="detectPushButton">
-      <property name="text">
-       <string>Detect</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" colspan="2">
-     <widget class="QLabel" name="vidLabel">
-      <property name="text">
-       <string>Vendor ID:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QLabel" name="descriptionLabel">
-      <property name="text">
-       <string>Description:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="2">
-     <widget class="QLabel" name="locationLabel">
-      <property name="text">
-       <string>Location:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QComboBox" name="serialPortInfoListBox"/>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QGroupBox" name="parametersBox">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>10</y>
-     <width>251</width>
-     <height>181</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Parameters:</string>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_2">
-    <item row="2" column="1">
-     <widget class="QComboBox" name="parityBox"/>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="baudRateLabel">
-      <property name="text">
-       <string>Baud Rate:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="flowControlLabel">
-      <property name="text">
-       <string>Flow Control:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="stopBitsLabel">
-      <property name="text">
-       <string>Stop Bits:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="baudRateBox"/>
-    </item>
-    <item row="3" column="1">
-     <widget class="QComboBox" name="stopBitsBox"/>
-    </item>
-    <item row="4" column="1">
-     <widget class="QComboBox" name="flowControlBox"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="dataBitsLabel">
-      <property name="text">
-       <string>Data Bits:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QComboBox" name="dataBitsBox"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="parityLabel">
-      <property name="text">
-       <string>Parity:</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QGroupBox" name="otherSettingsBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>200</y>
-     <width>511</width>
-     <height>151</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Other Settings:</string>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="4" column="0" colspan="2">
-     <widget class="QCheckBox" name="dropPacketCheckBox">
-      <property name="text">
-       <string>Drop packet if buffer is full</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="txBufferSizeEdit"/>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="dataBitsLabel_3">
-      <property name="text">
-       <string>Thread Sleep (ms):</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="dataBitsLabel_2">
-      <property name="text">
-       <string>TX Buffer Size:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="baudRateLabel_2">
-      <property name="text">
-       <string>Thread Priority:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="threadSleepEdit"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QComboBox" name="threadPriorityBox"/>
-    </item>
-    <item row="2" column="2">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="3" column="2">
-     <spacer name="horizontalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>350</y>
-     <width>511</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QPushButton" name="resetToDefaultsPushButton">
-      <property name="text">
-       <string>Reset to Defaults</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QDialogButtonBox" name="buttonBox">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+      <item row="0" column="0">
+       <widget class="QLabel" name="dataBitsLabel_3">
+        <property name="text">
+         <string>Thread Sleep (ms):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="threadSleepEdit"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="baudRateLabel_2">
+        <property name="text">
+         <string>Thread Priority:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="threadPriorityBox"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="dataBitsLabel_2">
+        <property name="text">
+         <string>TX Buffer Size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="txBufferSizeEdit"/>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="dropPacketCheckBox">
+        <property name="text">
+         <string>Drop packet if buffer is full</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="resetToDefaultsPushButton">
+       <property name="text">
+        <string>Reset to Defaults</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <tabstops>
   <tabstop>serialPortInfoListBox</tabstop>
