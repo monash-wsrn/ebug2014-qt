@@ -40,16 +40,19 @@ class MessageTranslator : public QObject
 private:
     static const float pi;
     static const std::array<std::array<int,16>,15> ledSequences;
-    struct Led{float x,y,size;int colour;};
-    struct myEllipse{float x,y,rx,ry,t;};
+    struct dataLed{int x,y,size, colour;};
+    struct dataEllipse{float x,y,rx,ry,t;};
     QVector<dataRobotLocation> knn_graph_partition(int numLeds);
     dataRobotLocation identify(std::vector<int> good);
-    myEllipse fitEllipse(std::vector<int> &component);
+    dataEllipse fitEllipse(std::vector<int> &component);
     float ellipse_to_circle(float phi,float rz);
     float min_rounding(std::vector<float> &angles);
     float circle_to_ellipse(float theta,float rz);
     Eigen::Vector3f eig(Eigen::Matrix3f &M);
     std::vector<int> getGoodLEDPoints(std::vector<int> vecLeds);
+    QVector<dataLed> MessageTranslator::getLeds(QByteArray message, qint32 numLeds);
+    qint32 MessageTranslator::getNumLeds(QByteArray btyarrMessage);
+    int MessageTranslator::getBits(int from, int to, char byte);
 
 public:
     explicit MessageTranslator(QObject *parent = 0);

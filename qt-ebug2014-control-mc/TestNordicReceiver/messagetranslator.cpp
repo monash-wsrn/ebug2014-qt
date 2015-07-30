@@ -4,24 +4,6 @@
 
 const float MessageTranslator::pi=4*atan(1);
 
-const std::array<std::array<int,16>,15> MessageTranslator::ledSequences{{
-//{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},
-{{1,1,2,1,2,0,2,2,1,0,1,2,2,2,1,1}}, //****
-{{0,1,1,0,1,2,1,2,2,2,2,0,2,1,1,1}}, //****
-{{1,1,1,2,2,0,0,2,1,0,2,2,1,2,1,2}}, //****
-{{0,1,0,2,0,0,0,1,1,2,1,1,2,2,1,1}}, //****
-{{2,2,1,0,0,2,0,2,1,2,2,1,2,2,0,1}}, //****
-{{0,0,1,0,1,1,1,0,2,1,0,1,1,2,0,1}}, //***
-{{1,2,0,0,2,2,1,1,2,0,2,1,0,0,1,1}}, //**
-{{0,1,0,0,0,1,0,2,1,2,0,1,2,1,0,1}},
-{{2,0,1,1,1,1,0,0,0,2,2,2,2,2,1,0}},
-{{0,2,0,1,0,2,2,0,2,2,2,0,1,0,1,2}},
-{{0,1,2,0,1,1,2,2,2,0,0,1,2,1,1,0}},
-{{1,0,0,2,2,0,1,1,0,2,2,2,1,2,0,0}},
-{{2,1,1,0,2,0,2,2,0,0,0,2,1,2,1,0}},
-{{0,1,2,0,0,0,0,0,1,2,2,0,2,0,0,2}},
-{{0,2,1,1,2,1,0,0,0,0,2,0,0,1,1,0}},
-}};
 
 
 
@@ -37,32 +19,72 @@ void MessageTranslator::newMsg(QByteArray btyarrMessage)
 {
     qDebug("Got new message to translate");
 
+    if(qint32 numLeds=getNumLeds(btyarrMessage))
+    {
 
+        qDebug("Number of LEDS seen:");
+        qDebug()<<numLeds;
 
-//    for(int i=0; i<btyarrMessage.size(); i++)
-//    {
-//        if(btyarrMessage.at(i)!=0)
-//            emit translatedData(knn_graph_partition(btyarrMessage.at(i)));
-//    }
+        if(btyarrMessage.size()-4<numLeds)
+        {
+            qDebug("Message not big enough for led data.");
+        }
+        else
+        {
+            QVector<dataLed> vectLeds = getLeds(btyarrMessage.mid(4), numLeds);
+
+        }
+    }else{
+         qDebug("Message not big enough for numLeds int (or numLeds=0)");
+    }
+
 }
 
-void MessageTranslator::getLeds(QByteArray blob, int n){
-    Led leds[MAX_LEDS];
-    for(u_int i=0;i<n;i++)
+qint32 MessageTranslator::getNumLeds(QByteArray btyarrMessage)
+{
+    if(btyarrMessage.size()<4)
+        return 0;
+
+    qint32 numLeds=0;
+    for(int i=0; i<4; i++)
     {
-      float x=blob[i]<<21>>21;
-      float y=blob[i]<<11>>22;
-      u_int8_t colour=blob[i]<<9>>30;
-      float radius=blob[i]>>23;
-      leds[i].x=x;
-      leds[i].y=y;
-      leds[i].size=radius;
-      leds[i].colour=colour;
+        numLeds=btyarrMessage.at(i);
+        numLeds=numLeds<<4;
+    }
+    return numLeds;
+}
+
+QList<dataLed> MessageTranslator::getLeds(QByteArray message, qint32 numLeds)
+{
+    QVector<dataLed> vectLeds;
+    if(message.size()<numLeds)
+    {
+        qDebug("Not enough data in message for all leds");
+        return vectLeds;
+    }
+
+    for(int i=0; i<numLeds; i++)
+    {
+        dataLed newLed;
+        char byteCurrent = message.at(i);
+        newLed.x = getBits(0,10,byteCurrent);
+        newLed.y = getBits(11,20,byteCurrent);
+        newLed.colour = getBits(21,22,byteCurrent);
+        newLed.radius = getBits(23,31,byteCurrent);
+        //Add new led data
+        vectLeds.append(newLed);
     }
 }
 
-//constructs 2-nearest neighbour graph and returns connected components
-QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(int numLeds)
+int MessageTranslator::getBits(int from, int to, char byte)
+{
+    int chopStart=byte>>from;
+    return chopStart & (int)(pow(2,to-from)-1);
+}
+
+
+//constructs 2-nearest neighbour graph
+QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(QVector<dataLed> vectLeds)
 {
     qDebug("Starting translate");
     QVector<dataRobotLocation> listRobotDataLocations;
@@ -83,8 +105,8 @@ QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(int numLeds)
         static array<int32_t,MAX_LEDS> dists;
         for(int j=0;j<numLeds;j++)
         {
-            int32_t x=points[j].x-points[i].x;
-            int32_t y=points[j].y-points[i].y;
+            int32_t x=vectLeds[j].x-vectLeds[i].x;
+            int32_t y=vectLeds[j].y-vectLeds[i].y;
             dists[j]=x*x+y*y; //scale y coordinate by 5 in distance calculation
         }
         partial_sort_copy(numbers.begin(),numbers.begin()+numLeds,neighbours.begin(),neighbours.end(),
@@ -134,7 +156,7 @@ QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(int numLeds)
 
 
 std::vector<int> MessageTranslator::getGoodLEDPoints(std::vector<int> vecLeds){
-    myEllipse ellipseFitted=fitEllipse(vecLeds); //fit ellipse to all leds in component
+    dataEllipse ellipseFitted=fitEllipse(vecLeds); //fit ellipse to all leds in component
 
     float s=sin(ellipseFitted.t);
     float c=cos(ellipseFitted.t);
@@ -154,8 +176,27 @@ std::vector<int> MessageTranslator::getGoodLEDPoints(std::vector<int> vecLeds){
 
 dataRobotLocation MessageTranslator::identify(std::vector<int> good)
 {
+    const std::array<std::array<int,16>,15> ledSequences{{
+    //{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},
+    {{1,1,2,1,2,0,2,2,1,0,1,2,2,2,1,1}}, //****
+    {{0,1,1,0,1,2,1,2,2,2,2,0,2,1,1,1}}, //****
+    {{1,1,1,2,2,0,0,2,1,0,2,2,1,2,1,2}}, //****
+    {{0,1,0,2,0,0,0,1,1,2,1,1,2,2,1,1}}, //****
+    {{2,2,1,0,0,2,0,2,1,2,2,1,2,2,0,1}}, //****
+    {{0,0,1,0,1,1,1,0,2,1,0,1,1,2,0,1}}, //***
+    {{1,2,0,0,2,2,1,1,2,0,2,1,0,0,1,1}}, //**
+    {{0,1,0,0,0,1,0,2,1,2,0,1,2,1,0,1}},
+    {{2,0,1,1,1,1,0,0,0,2,2,2,2,2,1,0}},
+    {{0,2,0,1,0,2,2,0,2,2,2,0,1,0,1,2}},
+    {{0,1,2,0,1,1,2,2,2,0,0,1,2,1,1,0}},
+    {{1,0,0,2,2,0,1,1,0,2,2,2,1,2,0,0}},
+    {{2,1,1,0,2,0,2,2,0,0,0,2,1,2,1,0}},
+    {{0,1,2,0,0,0,0,0,1,2,2,0,2,0,0,2}},
+    {{0,2,1,1,2,1,0,0,0,0,2,0,0,1,1,0}},
+    }};
 
-    myEllipse ellipseFitted=fitEllipse(good); //refit ellipse to only good points
+
+    dataEllipse ellipseFitted=fitEllipse(good); //refit ellipse to only good points
 
     QPointF centre(WIDTH-ellipseFitted.x,ellipseFitted.y);
 
@@ -244,7 +285,7 @@ dataRobotLocation MessageTranslator::identify(std::vector<int> good)
 
 
 
-MessageTranslator::myEllipse MessageTranslator::fitEllipse(std::vector<int> &component)
+MessageTranslator::dataEllipse MessageTranslator::fitEllipse(std::vector<int> &component)
 {
     using namespace Eigen;
 
