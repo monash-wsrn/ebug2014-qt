@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "commsin.h"
-#include "messagetranslator.h"
+#include "messageTranslator.h"
 
 namespace Ui {
 class MainWindow;

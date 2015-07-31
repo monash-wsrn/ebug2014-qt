@@ -1,81 +1,65 @@
-#include "messagetranslator.h"
+#include "messageTranslator.h"
 
 
 
 const float MessageTranslator::pi=4*atan(1);
 
-
-
-
-
-MessageTranslator::MessageTranslator(QObject *parent) :
-    QObject(parent)
+MessageTranslator::MessageTranslator() : ThreadableQObject()
 {
-
 }
 
+MessageTranslator::~MessageTranslator()
+{
+}
 
-void MessageTranslator::newMsg(QByteArray btyarrMessage)
+MessageTranslator::run()
+{
+}
+
+void MessageTranslator::translate(QByteArray btyarMessage)
 {
     qDebug("Got new message to translate");
 
-    if(qint32 numLeds=getNumLeds(btyarrMessage))
-    {
+    //Convert bytes to LED data
+    QList<dataLed> listLeds = getLeds(btyarMessage);
 
-        qDebug("Number of LEDS seen:");
-        qDebug()<<numLeds;
+    //Set up 2-nearest Neighbour graph
 
-        if(btyarrMessage.size()-4<numLeds)
-        {
-            qDebug("Message not big enough for led data.");
-        }
-        else
-        {
-            QVector<dataLed> vectLeds = getLeds(btyarrMessage.mid(4), numLeds);
-
-        }
-    }else{
-         qDebug("Message not big enough for numLeds int (or numLeds=0)");
-    }
 
 }
 
-qint32 MessageTranslator::getNumLeds(QByteArray btyarrMessage)
+/**
+ * @brief MessageTranslator::getLeds
+ * Converts a raw byte message to a vector of
+ * LEDS objects, each containing x,y,colour and size
+ * @param message Raw byte array to split
+ * @return  List of LED objects matching input
+ */
+QList<dataLed> MessageTranslator::getLeds(QByteArray message)
 {
-    if(btyarrMessage.size()<4)
-        return 0;
-
-    qint32 numLeds=0;
-    for(int i=0; i<4; i++)
-    {
-        numLeds=btyarrMessage.at(i);
-        numLeds=numLeds<<4;
-    }
-    return numLeds;
-}
-
-QList<dataLed> MessageTranslator::getLeds(QByteArray message, qint32 numLeds)
-{
-    QVector<dataLed> vectLeds;
-    if(message.size()<numLeds)
-    {
-        qDebug("Not enough data in message for all leds");
-        return vectLeds;
-    }
-
-    for(int i=0; i<numLeds; i++)
+    QList<dataLed> listLeds;
+    for(int i=0; i<message.size(); i++)
     {
         dataLed newLed;
         char byteCurrent = message.at(i);
         newLed.x = getBits(0,10,byteCurrent);
         newLed.y = getBits(11,20,byteCurrent);
         newLed.colour = getBits(21,22,byteCurrent);
-        newLed.radius = getBits(23,31,byteCurrent);
+        newLed.sze = getBits(23,31,byteCurrent);
         //Add new led data
-        vectLeds.append(newLed);
+        listLeds.append(newLed);
     }
 }
 
+/**
+ * @brief MessageTranslator::getBits
+ * Sub function of getLeds. Extracts the bits from index 'from' to
+ * 'to' inclusive (first index is 0).
+ * @param from Starting bit to include (0 is initial)
+ * @param to Last bit to include. Assumes to-from<16
+ * @param byte Char of bits to take from.
+ * @return Integer of returned bits.
+ */
 int MessageTranslator::getBits(int from, int to, char byte)
 {
     int chopStart=byte>>from;
@@ -86,16 +70,13 @@ int MessageTranslator::getBits(int from, int to, char byte)
 //constructs 2-nearest neighbour graph
 QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(QVector<dataLed> vectLeds)
 {
-    qDebug("Starting translate");
+
     QVector<dataRobotLocation> listRobotDataLocations;
 
     using namespace std;
 
     array<int,MAX_LEDS> numbers;
-    bool first=true;
-    if(first)
-        iota(numbers.begin(),numbers.end(),0);
-    first=false;
+    iota(numbers.begin(),numbers.end(),0);
 
     array<std::vector<int>,MAX_LEDS> knngraph;
 
@@ -115,7 +96,7 @@ QVector<dataRobotLocation> MessageTranslator::knn_graph_partition(QVector<dataLe
         knngraph[i].insert(knngraph[i].end(),neighbours.begin()+1,neighbours.end());
         for(int j=1;j<neighbours.size();j++) knngraph[neighbours[j]].push_back(i);
     }
-
+//TODO
     static bitset<MAX_LEDS> done;
     done.reset();
 

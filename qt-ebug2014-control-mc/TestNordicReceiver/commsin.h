@@ -5,6 +5,8 @@
 #include <QtSerialPort>
 
 #include "ThreadableQObject.h"
+#include "messageTranslator.h"
+#include "dataRobotLocation.h"
 
 class CommsIn : public ThreadableQObject
 {
@@ -12,6 +14,11 @@ class CommsIn : public ThreadableQObject
 
 private:
     QSerialPort* port;
+    MessageTranslator *messageTranslator;
+    QMutex mutexBuffer;
+    QList<char> buffer;
+    bool waitingForMoreData;
+    qint32 numLeds;
 
 public:
     explicit CommsIn(QString strPortName);
@@ -20,9 +27,11 @@ public:
 
 private slots:
     void read();
+    void dataReadyToSend(QList<dataRobotLocation> listRobotLocations);
+
 
 signals:
-    void newMsg(QByteArray);
+    void newRobotData(QList<dataRobotLocation> listRobotLocations);
 public slots:
     void run();
 

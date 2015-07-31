@@ -17,11 +17,12 @@ QMAKE_CXXFLAGS += -std=c++0x \
 SOURCES += main.cpp\
         mainwindow.cpp \
     commsin.cpp \
-    messagetranslator.cpp
+    messageTranslator.cpp
 
 HEADERS  += mainwindow.h \
     ThreadableQObject.h \
     commsin.h \
-    messagetranslator.h
+    messageTranslator.h \
+    dataRobotLocation.h
 
 FORMS    += mainwindow.ui
