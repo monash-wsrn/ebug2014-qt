@@ -19,6 +19,14 @@ void MessageTranslator::translate(QByteArray btyarMessage)
     //Convert bytes to LED data
     QList<dataLed> listLeds = getLeds(btyarMessage);
 
+    for(int i=0; i<listLeds.size(); i++){
+        dataLed gotLED = listLeds.at(i);
+        qDebug("New LED:");
+        qDebug()<<gotLED.x;
+        qDebug()<<gotLED.y;
+        qDebug()<<gotLED.colour;
+        qDebug()<<gotLED.size;
+    }
     //Set up 2-nearest Neighbour graph
 
 

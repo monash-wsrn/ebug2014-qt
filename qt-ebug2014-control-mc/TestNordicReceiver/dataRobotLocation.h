@@ -15,4 +15,5 @@ struct dataRobotLocation{
     float worldOrientation;
 };
 
+
 #endif // DATAROBOTLOCATION_H

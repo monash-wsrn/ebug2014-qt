@@ -8,20 +8,24 @@
 #include "messageTranslator.h"
 #include "dataRobotLocation.h"
 
-class CommsIn : public ThreadableQObject
+class CommsIn : public QThread
 {
     Q_OBJECT
 
 private:
-    QSerialPort* port;
+    QString strPortName;
+    QMutex mutexPortName;
+    int timeoutWait=10;
+
     MessageTranslator *messageTranslator;
     QMutex mutexBuffer;
     QList<char> buffer;
     bool fillingBuffer;
+    bool quit;
     qint32 numLeds;
 
 public:
-    explicit CommsIn(QString strPortName);
+    CommsIn(QObject *parent = 0);
     ~CommsIn();
     QStringList getPortInfo();
 
@@ -32,6 +36,7 @@ private slots:
 
 signals:
     void newRobotData(QList<dataRobotLocation> listRobotLocations);
+    void newRawData(QByteArray bytarRead);
 public slots:
     void run();
 

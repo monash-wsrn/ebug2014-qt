@@ -19,12 +19,13 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    CommsIn *comms;
+    CommsIn comms;
     void fill_lstbxPortsAvailable();
     void fill_portInfoLabels(int index);
 
 public slots:
     void newMsg(QList<dataRobotLocation>);
+    void newRawMsg(QByteArray);
 
 private slots:
     void on_lstbxPortsAvailable_currentIndexChanged(int index);
