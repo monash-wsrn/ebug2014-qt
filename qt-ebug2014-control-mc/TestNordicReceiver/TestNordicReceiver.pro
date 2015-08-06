@@ -26,3 +26,6 @@ HEADERS  += mainwindow.h \
     dataRobotLocation.h
 
 FORMS    += mainwindow.ui
+
+OTHER_FILES += \
+    TestNordicReceiver.pro.user

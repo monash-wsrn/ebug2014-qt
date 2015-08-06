@@ -17,7 +17,7 @@ private:
     MessageTranslator *messageTranslator;
     QMutex mutexBuffer;
     QList<char> buffer;
-    bool waitingForMoreData;
+    bool fillingBuffer;
     qint32 numLeds;
 
 public:

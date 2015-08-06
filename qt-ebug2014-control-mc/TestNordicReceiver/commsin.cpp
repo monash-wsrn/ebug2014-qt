@@ -2,6 +2,8 @@
 
 CommsIn::CommsIn(QString strPortName) : ThreadableQObject()
 {
+    fillingBuffer = false;
+
     //Set up serial port connected to requested address
     port = new QSerialPort(strPortName);
     port->open(QIODevice::ReadOnly);
@@ -9,9 +11,9 @@ CommsIn::CommsIn(QString strPortName) : ThreadableQObject()
 
     //Set up message translator
     messageTranslator = new MessageTranslator();
-    connect(messageTranlator, SIGNAL(translationDone(QList<dataRobotLocation>)), this, SLOT(dataReadyToSend(QList<dataRobotLocation>));
+    connect(messageTranslator, SIGNAL(translationDone(QList<dataRobotLocation>)), this, SLOT(dataReadyToSend(QList<dataRobotLocation>)));
 
-    waitingForMoreData = false;
+
 }
 
 /**
@@ -34,8 +36,9 @@ CommsIn::~CommsIn()
  */
 void CommsIn::run(){
     forever{
-        if(waitingForMoreData)
+        if(fillingBuffer)
         {
+            qDebug("CommsIn: Need more data...");
             //Check if complete message on buffer
             mutexBuffer.lock();
                 int availableBytes = buffer.size();
@@ -43,20 +46,22 @@ void CommsIn::run(){
             if(availableBytes>=numLeds)
             {
                 //Copy off comlete message and send to translator
-                waitingForMoreData=false;
+                fillingBuffer=false;
                 QByteArray bytarCompleteMessage;
                 mutexBuffer.lock();
                 for(int i=0; i<numLeds; i++)
-                        bytarCompleteMessage.append(buffer.pop_front());
+                        bytarCompleteMessage.append(buffer.takeFirst());
                 mutexBuffer.unlock();
-                messageTranslator.translate(bytarCompleteMessage);
+                messageTranslator->translate(bytarCompleteMessage);
             }
         }
         else
         {
+            qDebug("CommsIn: Getting first 4");
             //Get number of LEDS from firs 4 bytes
             mutexBuffer.lock();
                 int availableBytes = buffer.size();
+                qDebug() << availableBytes;
             mutexBuffer.unlock();
             if(availableBytes>=4)
             {
@@ -64,14 +69,15 @@ void CommsIn::run(){
                 mutexBuffer.lock();
                     for(int i=0; i<4; i++)
                     {
-                        numLeds=buffer.pop_front();
+                        numLeds=buffer.takeFirst();
                         numLeds=numLeds<<4;
                     }
                 mutexBuffer.unlock();
                 if(numLeds>0)
-                     waitingForMoreData=true;
+                     fillingBuffer=true;
             }
         }
+        QThread::sleep(1);
     }
 }
 

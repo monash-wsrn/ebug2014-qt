@@ -4,7 +4,6 @@
 #include <QMainWindow>
 
 #include "commsin.h"
-#include "messageTranslator.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,10 +22,9 @@ private:
     CommsIn *comms;
     void fill_lstbxPortsAvailable();
     void fill_portInfoLabels(int index);
-    MessageTranslator *translate;
 
 public slots:
-    void newMsg(QByteArray);
+    void newMsg(QList<dataRobotLocation>);
 
 private slots:
     void on_lstbxPortsAvailable_currentIndexChanged(int index);

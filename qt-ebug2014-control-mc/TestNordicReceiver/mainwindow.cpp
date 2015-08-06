@@ -18,24 +18,24 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::newMsg(QByteArray bytesMsg){
-    QString *strMsg = new QString();
-    strMsg->append(QString::number(bytesMsg.size()));
-    strMsg->append("|");
-    int value=0;
-    for(int i=0; i<bytesMsg.size(); i++)
-    {
-        value += bytesMsg.at(i);
-        QByteArray *charAtI = new QByteArray();
-        charAtI->append(bytesMsg.at(i));
-        strMsg->append(charAtI->toHex());
-        strMsg->append(" ");
-    }
-    //strMsg->append(bytesMsg.toHex());
-    strMsg->append("|");
-    strMsg->append(QString::number(value));
-    if(value!=0)
-        ui->textRaw->append(*strMsg);
+void MainWindow::newMsg(QList<dataRobotLocation>){
+//    QString *strMsg = new QString();
+//    strMsg->append(QString::number(bytesMsg.size()));
+//    strMsg->append("|");
+//    int value=0;
+//    for(int i=0; i<bytesMsg.size(); i++)
+//    {
+//        value += bytesMsg.at(i);
+//        QByteArray *charAtI = new QByteArray();
+//        charAtI->append(bytesMsg.at(i));
+//        strMsg->append(charAtI->toHex());
+//        strMsg->append(" ");
+//    }
+//    //strMsg->append(bytesMsg.toHex());
+//    strMsg->append("|");
+//    strMsg->append(QString::number(value));
+//    if(value!=0)
+//        ui->textRaw->append(*strMsg);
 
 }
 
@@ -75,9 +75,7 @@ void MainWindow::on_btnDetect_clicked()
 {
     qDebug("Starting CommsIn");
     comms = new CommsIn(ui->lstbxPortsAvailable->currentText());
-    translate = new MessageTranslator();
 
-    QObject::connect(comms, SIGNAL(newMsg(QByteArray)),SLOT(newMsg(QByteArray)));
-    QObject::connect(comms, SIGNAL(newMsg(QByteArray)), translate, SLOT(newMsg(QByteArray)));
+    QObject::connect(comms, SIGNAL(newRobotData(QList<dataRobotLocation>)),SLOT(newMsg(QList<dataRobotLocation>)));
 
 }

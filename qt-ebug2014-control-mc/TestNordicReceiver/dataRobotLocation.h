@@ -1,3 +1,6 @@
+#ifndef DATAROBOTLOCATION_H
+#define DATAROBOTLOCATION_H
+
 /***********************
  * Datatype for storing absolute position
  * of robot data including position, orientation and ID
@@ -11,3 +14,5 @@ struct dataRobotLocation{
     int robotId;
     float worldOrientation;
 };
+
+#endif // DATAROBOTLOCATION_H
