@@ -9,8 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     MainWindow::fill_lstbxPortsAvailable();
 
-    QObject::connect(comms, SIGNAL(newRawData(QByteArray)),SLOT(newRawMsg(QByteArray)));
-    QObject::connect(comms, SIGNAL(newRobotData(QList<dataRobotLocation>)),SLOT(newMsg(QList<dataRobotLocation>)));
+    QObject::connect(&comms, SIGNAL(newLedData(QList<QString>)), SLOT(newLedMsg(QList<QString>)));
+    QObject::connect(&comms, SIGNAL(newRawData(QByteArray)),SLOT(newRawMsg(QByteArray)));
+    //QObject::connect(&comms, SIGNAL(newRobotData(QList<dataRobotLocation>)),SLOT(newMsg(QList<dataRobotLocation>)));
 
     qDebug("Window is set up.");
 
@@ -43,24 +44,27 @@ void MainWindow::newRawMsg(QByteArray bytesMsg){
 
 }
 
-void MainWindow::newMsg(QList<dataRobotLocation>){
-//    QString *strMsg = new QString();
-//    strMsg->append(QString::number(bytesMsg.size()));
-//    strMsg->append("|");
-//    int value=0;
-//    for(int i=0; i<bytesMsg.size(); i++)
-//    {
-//        value += bytesMsg.at(i);
-//        QByteArray *charAtI = new QByteArray();
-//        charAtI->append(bytesMsg.at(i));
-//        strMsg->append(charAtI->toHex());
-//        strMsg->append(" ");
-//    }
-//    //strMsg->append(bytesMsg.toHex());
-//    strMsg->append("|");
-//    strMsg->append(QString::number(value));
-//    if(value!=0)
-//        ui->textRaw->append(*strMsg);
+void MainWindow::newLedMsg(QList<QString> lststrLeds){
+        for(int i=0; i<lststrLeds.size(); i++)
+            ui->textLeds->append(lststrLeds.at(i));
+}
+
+//Convert each robot in list to string of data and append to textTranslated
+void MainWindow::newMsg(QList<dataRobotLocation> robotData){
+    for(int i=0; i<robotData.size(); i++)
+    {
+        QString *strMsg = new QString();
+        strMsg->append(i);
+        strMsg->append(" ID: ");
+        strMsg->append(robotData.at(i).robotId);
+        strMsg->append(" Pos: (");
+        strMsg->append(QString::number(robotData.at(i).worldPossition.x()));
+        strMsg->append(",");
+        strMsg->append(QString::number(robotData.at(i).worldPossition.y()));
+        strMsg->append(") Angle: ");
+        strMsg->append(QString::number(robotData.at(i).worldOrientation));
+        ui->textTranslated->append(*strMsg);
+    }
 
 }
 

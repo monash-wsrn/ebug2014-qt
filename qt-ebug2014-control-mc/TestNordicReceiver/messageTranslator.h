@@ -24,7 +24,7 @@
 #define FOCAL_WIDTH (1*WIDTH)
 #define SCALE 0.5f
 
-class MessageTranslator : public ThreadableQObject
+class MessageTranslator  : public QThread
 {
     Q_OBJECT
 private:
@@ -49,12 +49,14 @@ private:
 //    qint32 MessageTranslator::getNumLeds(QByteArray btyarrMessage);
 
 public:
-    explicit MessageTranslator();
+    explicit MessageTranslator(QObject *parent = 0);
     ~MessageTranslator();
     void translate(QByteArray btyarMessage);
 
 signals:
     void translationDone(QList<dataRobotLocation>);
+    void ledsDone(QList<QString>);
+
 public slots:
     void run();
 

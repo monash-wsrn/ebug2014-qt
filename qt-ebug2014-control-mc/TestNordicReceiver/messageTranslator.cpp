@@ -1,6 +1,6 @@
 #include "messageTranslator.h"
 
-MessageTranslator::MessageTranslator() : ThreadableQObject()
+MessageTranslator::MessageTranslator(QObject *parent) : QThread(parent)
 {
 }
 
@@ -14,21 +14,29 @@ void MessageTranslator::run()
 
 void MessageTranslator::translate(QByteArray btyarMessage)
 {
-    qDebug("Got new message to translate");
+    qDebug("Translator: Got new message to translate");
 
     //Convert bytes to LED data
     QList<dataLed> listLeds = getLeds(btyarMessage);
 
+    QList<QString> lststrLedsString;
     for(int i=0; i<listLeds.size(); i++){
         dataLed gotLED = listLeds.at(i);
-        qDebug("New LED:");
-        qDebug()<<gotLED.x;
-        qDebug()<<gotLED.y;
-        qDebug()<<gotLED.colour;
-        qDebug()<<gotLED.size;
+        lststrLedsString.append(QString::number(i));
+        lststrLedsString.append(": (");
+        lststrLedsString.append(QString::number(gotLED.x));
+        lststrLedsString.append(",");
+        lststrLedsString.append(QString::number(gotLED.y));
+        lststrLedsString.append(") Colour: ");
+        lststrLedsString.append(QString::number(gotLED.colour));
+        lststrLedsString.append(" Size: ");
+        lststrLedsString.append(QString::number(gotLED.size));
     }
-    //Set up 2-nearest Neighbour graph
 
+    qDebug("Translator: got some LEDs!");
+    emit ledsDone(lststrLedsString);
+    //Set up 2-nearest Neighbour graph
+    //TODO
 
 }
 
@@ -50,9 +58,11 @@ QList<MessageTranslator::dataLed> MessageTranslator::getLeds(QByteArray message)
         newLed.y = getBits(11,20,byteCurrent);
         newLed.colour = getBits(21,22,byteCurrent);
         newLed.size = getBits(23,31,byteCurrent);
+        qDebug("Translator: Added LED");
         //Add new led data
         listLeds.append(newLed);
     }
+    return listLeds;
 }
 
 /**

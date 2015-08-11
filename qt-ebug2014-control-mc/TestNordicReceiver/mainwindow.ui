@@ -124,13 +124,25 @@
      </widget>
     </item>
     <item>
+     <widget class="QGroupBox" name="grpbxLeds">
+      <property name="title">
+       <string>LEDs</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QTextBrowser" name="textLeds"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <widget class="QGroupBox" name="grpbxTranslated">
       <property name="title">
        <string>Translated Robot Data</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QTableWidget" name="tableTranslated"/>
+        <widget class="QTextBrowser" name="textTranslated"/>
        </item>
       </layout>
      </widget>

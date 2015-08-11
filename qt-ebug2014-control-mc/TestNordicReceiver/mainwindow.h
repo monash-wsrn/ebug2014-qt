@@ -26,6 +26,7 @@ private:
 public slots:
     void newMsg(QList<dataRobotLocation>);
     void newRawMsg(QByteArray);
+    void newLedMsg(QList<QString>);
 
 private slots:
     void on_lstbxPortsAvailable_currentIndexChanged(int index);
