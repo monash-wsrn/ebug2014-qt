@@ -61,6 +61,7 @@ void CommsIn::run(){
             //Data ready to read so read it
             QByteArray bytarRawRead = port.readAll();
             while(port.waitForReadyRead(10)){
+//TODO: Getting "double-free or corruption" error here
                 bytarRawRead.append(port.readAll());
             }
             qDebug("CommsIn: Adding read to buffer.");
