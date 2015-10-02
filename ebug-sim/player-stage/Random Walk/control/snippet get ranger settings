@@ -1,0 +1,9 @@
+	ebug1_ranger.RequestConfigure();
+	std::cout << "GetRangeCount: " << ebug1_ranger.GetRangeCount() << std::endl;
+	std::cout << "GetMinAngle: " << ebug1_ranger.GetMinAngle()*180/M_PI << std::endl;
+	std::cout << "GetMaxAngle: " << ebug1_ranger.GetMaxAngle()*180/M_PI << std::endl;
+	std::cout << "GetAngularRes: " << ebug1_ranger.GetAngularRes()*180/M_PI << std::endl;
+	std::cout << "GetMinRange: " << ebug1_ranger.GetMinRange() << std::endl;
+	std::cout << "GetMaxRange: " << ebug1_ranger.GetMaxRange() << std::endl;
+	std::cout << "GetRangeRes: " << ebug1_ranger.GetRangeRes() << std::endl;
+	
