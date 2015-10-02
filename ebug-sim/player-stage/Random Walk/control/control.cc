@@ -8,7 +8,7 @@
 
 void RandomWalk(double *speedForward, double *speedRotate);
 void StraightForward(double *speedForward, double *speedRotate);
-void AvoidWal(double *speedForward, double *speedRotate, PlayerCc::RangerProxy &ranger);
+void AvoidWall(double *speedForward, double *speedRotate, PlayerCc::RangerProxy &ranger);
 
 
 /*
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		double speedForward, speedRotate;
 				
 		//Apply RandomWalk effect on speed variables
-		StraightForward(&speedForward, &speedRotate);
+		RandomWalk(&speedForward, &speedRotate);
 		
 		//Apply speeds to motors
 		ebug1_pos.SetSpeed(speedForward, dtor(speedRotate));
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 		
 		//Print some output
 		for(int i=0; i<ebug1_ranger.GetRangeCount(); i++)
-			std::cout << i << ":" << ebug1_ranger.GetIntensity(i) << "\n" ;
+			std::cout << i << ":" << ebug1_ranger.GetRange(i) << "\n" ;
 		std::cout << "\n\n\n";
 		
 		
@@ -79,7 +79,7 @@ void RandomWalk(double *speedForward, double *speedRotate)
 	double forwardSelect, rotateSelect;
 	
 	//Select forward speed between 0 and forwardMax with 1/100 granuality
-	forwardSelect = ((rand()%101)/100)*(double)forwardMax;
+	forwardSelect = ((float)(rand()%101)/100)*forwardMax;
 		
 	//Select rotational speed between -rotateMax and +rotateMax
 	rotateSelect = rotateMax-(rand()%(2*rotateMax));
@@ -105,7 +105,7 @@ void StraightForward(double *speedForward, double *speedRotate){
 * Reads from ranger proxy and sets speeds to make robot drive backward
 * and turn away from a wall.
 */
-void AvoidWal(double *speedForward, double *speedRotate, PlayerCc::RangerProxy &ranger){
+void AvoidWall(double *speedForward, double *speedRotate, PlayerCc::RangerProxy &ranger){
 	
 	//Distance to wall that triggers a reaction
 	double detectionDistance = 0.5;
