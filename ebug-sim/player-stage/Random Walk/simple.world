@@ -1,0 +1,60 @@
+
+# Desc: Configuration for simulated world and ebug robots
+# Author: Matthew Boys
+# Date: September 2015
+
+include "robots/ebug.inc"
+include "maps/map.inc"
+
+
+# time to pause (in GUI mode) or quit (in headless mode (-g)) the simulation
+quit_time 3600 # 1 hour of simulated time
+
+paused 0
+
+resolution 0.02
+
+# configure the GUI window
+window
+(
+  size [ 635 666 ] # in pixels
+  scale 116.106   # pixels per meter
+  center [ 0.0  0 ]
+  rotate [ 0.000  0 ]
+  			
+  show_data 0              # 1=on 0=off
+)
+
+# load an environment bitmap
+floorplan
+( 
+  name "floor"
+  size [5.000 5.000 0.800]
+  pose [0.000 0.000 0.000 0.000]
+  bitmap "bitmaps/simple_rooms.png"
+)
+
+ebug
+(		  
+  name "r0"
+  pose [ -1.605 -1.843 0.000 134.772 ] 
+ 
+  # demonstrate a plugin controller, implemented in examples/ctrl/wander.cc
+  # you probably should comment this out when using simple.cfg with Player
+  #ctrl "wander"
+
+)
+
+ebug
+(		  
+  # can refer to the robot by this name
+  name "r1"
+  pose [ -1.078 -1.305 0.000 180.000 ] 
+ 
+  # demonstrate a plugin controller, implemented in examples/ctrl/wander.cc
+  # you probably should comment this out when using simple.cfg with Player
+  #ctrl "wander"
+
+)
+
+

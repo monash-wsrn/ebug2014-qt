@@ -1,0 +1,13 @@
+driver
+( 
+  name "gridmap"
+  provides ["map:0"]
+  requires ["6665:position2d:0" "6665:ranger:0"]
+  plugin "mapping.so"
+  width 809
+  height 689
+  startx 0
+  starty 0
+  scale 0.028
+  treshold 4.5
+)
