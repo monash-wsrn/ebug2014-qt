@@ -119,9 +119,9 @@ define ebug_ranger ranger
 		pose [ 0 0 0 0 ]
 	
 		#size [0.036 0.080 0.015 ]
-		range [0 3] # [min max]
-		fov 360 # Field of view in degrees
-		samples 16
+		range [0 2] # [min max]
+		fov 315 # Field of view in degrees from first to last ranger
+		samples 15
 	)
 	
 

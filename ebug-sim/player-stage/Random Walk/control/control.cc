@@ -103,7 +103,7 @@ void avoidWall(double *speedForward, double *speedRotate, PlayerCc::RangerProxy 
 		speed = 0.1;
 		rotation = (1)*avoidRotateSpeed;
 	}
-	if(midAverage < detectionDistance)
+	if(midAverage < detectionDistance || ranger->GetRange(midRanger) < detectionDistance )
 	{	//Obsticle directly in front
 		//std::cout << "Wall at front" << std::endl;
 		speed = 0; //Stop

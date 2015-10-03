@@ -4,11 +4,20 @@
 #include <unistd.h> //For sleep()
 #include <math.h> //For M_PI and sqrt
 
-
+//Player library plugin
 #include <libplayerc++/playerc++.h>
 
+//OpenCv Library for mapping
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 
-#define NO_ROBOTS 3
+#define NO_ROBOTS 5
+#define MAP_SIZE 500
+#define MAP_SCALE 50
+
+#define DRAW_LINE_THICKNESS 4
+#define DRAW_POINT_THICKNESS 8
 
 
 /*
@@ -121,7 +130,7 @@ void avoidWall(double *speedForward, double *speedRotate, PlayerCc::RangerProxy 
 */
 void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::Position2dProxy** pos)
 {
-	double tooClose = 0.3;
+	double tooClose = 0.6;
 				
 	//Check distance and heading to each neighbour and take action if collision incoming
 	for(int k=0; k<NO_ROBOTS; k++)
@@ -152,7 +161,7 @@ void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::
 					//std::cout << "COLLISION INCOMING!" << std::endl;
 					//Driving towards collision!
 					*speedForward = 0;
-					*speedRotate = (heading>0 ? +90 : -90 );
+					*speedRotate = (heading>0 ? +180 : -180 );
 					return;
 				}
 			
@@ -160,6 +169,85 @@ void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::
 		}
 	}
 				
+}
+
+/*
+* Mark the local map with collected information from rangers. -1 for empty space and +1 for a wall.
+*/
+void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dProxy *pos)
+{
+	using namespace cv;
+	
+	//Update configuration data of ranger
+	ranger->RequestConfigure();
+	//Angular Res calculation seems to be wrong from ranger->GetAngularRes()
+	//Use this instead (note the -1)
+	double getAngularRes = (ranger->GetMaxAngle()-ranger->GetMinAngle())/(ranger->GetRangeCount()-1);
+	
+	//Set point at robot position
+	Point ptRobot = Point( (pos->GetXPos()+5)*MAP_SCALE, (pos->GetYPos()-5)*(-1)*MAP_SCALE);
+	
+	//Get robot pose angle (radians)
+	double aRobot = pos->GetYaw();
+	
+	//Mark ranger data on map
+	for(int i=0; i<ranger->GetRangeCount(); i++)
+	{
+		//Get orientation and intensity of ranger reading
+		double aRanger = ranger->GetMinAngle() + (i*getAngularRes);
+		double rRanger = ranger->GetRange(i);
+			
+		//Convert reading to coordinates
+		double xRanger = pos->GetXPos() + rRanger*cos(aRanger+aRobot);
+		double yRanger = pos->GetYPos() + rRanger*sin(aRanger+aRobot);
+		
+		//Set point at the end of the ranger reading
+		Point ptRanger = Point((xRanger+5)*MAP_SCALE, (yRanger-5)*(-1)*MAP_SCALE);
+		
+		//Draw line from robot to end of ranger reading (green)
+		line(map, ptRobot, ptRanger, -1,DRAW_LINE_THICKNESS);
+		
+		if(ranger->GetRange(i)<ranger->GetMaxRange())
+		{
+			//Mark seen walls
+			line(map, ptRanger, ptRanger, 1, DRAW_POINT_THICKNESS);
+		}else{
+			//Mark unexplored fronteer
+			//line(map, ptRanger, ptRanger, -1, DRAW_POINT_THICKNESS);
+		}
+		
+		
+	
+	}
+	
+	//Draw point showing robot's path
+	//line(map, ptRobot, ptRobot, CV_RGB(0, 0, 255),4);
+	 
+}
+
+/*
+* Copy selected map into the global map database and calculate percentage of explored area
+*/
+double shareMaps(cv::Mat map, cv::Mat globalMap)
+{
+	using namespace cv;
+	
+	globalMap = globalMap + map;
+	//Stop overflow of values beyond +/-100
+	for(int row=0; row<MAP_SIZE; row++)
+		for(int col=0; col<MAP_SIZE; col++)
+		{
+			globalMap.at<char>(row,col)=(globalMap.at<char>(row,col)>100 ? 100 : globalMap.at<unsigned char>(row,col));
+			globalMap.at<unsigned char>(row,col)=(globalMap.at<char>(row,col)<-100 ? -100 : globalMap.at<char>(row,col));
+		}
+	
+	
+	//Print percentage of explored area
+	double exploredPxls = countNonZero(globalMap);
+	double explored = 100*exploredPxls/(MAP_SIZE*MAP_SIZE);
+	
+	return explored;
+	
 }
 
 
@@ -172,14 +260,24 @@ void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::
 int main(int argc, char *argv[])
 {
 	using namespace PlayerCc;
+	using namespace cv;
   try
   {
-	//Initialise list of ebugs and their proxies
+	//Create list of ebugs and their proxies
 	int ports[NO_ROBOTS];
 	PlayerClient* ebugs[NO_ROBOTS];
 	Position2dProxy* pos[NO_ROBOTS];
 	RangerProxy* ranger[NO_ROBOTS];
+	Mat maps[NO_ROBOTS];
+	char windowName[NO_ROBOTS][10];	
 	
+	//Create global map
+	char const * globalWindow = "Global Map";
+	Mat globalMap = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);
+	namedWindow( globalWindow, WINDOW_AUTOSIZE );
+	
+	
+	//Initialise each ebug, proxy and map
 	for(int i=0; i<NO_ROBOTS; i++)
 	{
 		//Assign to ports 6665, 6666, etc
@@ -187,6 +285,8 @@ int main(int argc, char *argv[])
 		ebugs[i] = new PlayerClient("localhost", ports[i]);
 		pos[i] = new Position2dProxy(ebugs[i], 0);
 		ranger[i] = new RangerProxy(ebugs[i], 0);
+		maps[i] = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);//Signed chars, Scalar(0,0,0));
+		sprintf( windowName[i], "MAP %d", i);		
 		
 		std::cout << "Created robot #" << i << std::endl;
 		std::cout << "\tPort:\t" << ports[i] << std::endl;
@@ -194,11 +294,18 @@ int main(int argc, char *argv[])
 		std::cout << "\tPos2dProxy:\t" << pos[i] << std::endl;
 		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl<< std::endl;
 		
+		//Show map
+		namedWindow( windowName[i], WINDOW_AUTOSIZE );
+		
 		
 		//Enable motor function
 		pos[i]->SetMotorEnable(1);
 		
 	}
+	
+	//To hold percentage explored
+	double explored;
+	std::cout << "Explored (%)\tElapsed Simulation Time (s)" << std::endl;
 
 	//Control
 	while(true)
@@ -212,6 +319,12 @@ int main(int argc, char *argv[])
 			//Variables for robot motion in m/s, degrees/s
 			double speedForward, speedRotate;
 			
+			//Mark map with ranger data
+			markMap(maps[i], ranger[i], pos[i]);
+			
+			//Communicate maps
+			explored = shareMaps(maps[i], globalMap);			
+			
 			//Apply RandomWalk or Straigh Forward effect on speed variables
 			//RandomWalk(&speedForward, &speedRotate);
 			StraightForward(&speedForward, &speedRotate);
@@ -220,11 +333,25 @@ int main(int argc, char *argv[])
 			avoidWall(&speedForward, &speedRotate, ranger[i]);
 			avoidCollision(i, &speedForward, &speedRotate, pos);
 			
+						
 			//Apply speeds to motors
 			pos[i]->SetSpeed(speedForward, dtor(speedRotate));
+			//pos[i]->SetSpeed(0, dtor(0));
+			
+					
+			//Display current map
+			imshow(windowName[i],127*maps[i]);
+			//waitKey(1);
+			
+			//Output exploration data and time
+			std::cout << explored << "\t" << pos[i]->GetDataTime() << std::endl;			
 		}
+		
+		imshow(globalWindow,127*globalMap);
+		waitKey(1);
+		
 		//Wait one second
-		//sleep(1);
+		sleep(0.01);
 		
 	}
 

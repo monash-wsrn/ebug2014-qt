@@ -17,8 +17,8 @@ resolution 0.02 #Of underlying bitmap (metres)
 window
 (
   size [ 635 666 ] # in pixels
-  scale 64.000   # pixels per meter
-  center [ -0.024  -0.000 ]
+  scale 166.000   # pixels per meter
+  center [ -2.972  -2.836 ]
   rotate [ 0.000  0.000 ]
   			
   show_data 1              # 1=on 0=off
