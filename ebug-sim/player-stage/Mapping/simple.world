@@ -30,7 +30,7 @@ floorplan
   name "floor"
   size [10.000 10.000 0.300]
   pose [0.000 0.000 0.000 0.000]
-  bitmap "bitmaps/simple_rooms.png"
+  bitmap "bitmaps/cave.png"
 )
 
 

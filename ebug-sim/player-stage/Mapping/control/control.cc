@@ -261,6 +261,8 @@ int main(int argc, char *argv[])
 {
 	using namespace PlayerCc;
 	using namespace cv;
+
+	bool showLocalMaps = false;
   try
   {
 	//Create list of ebugs and their proxies
@@ -295,7 +297,8 @@ int main(int argc, char *argv[])
 		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl<< std::endl;
 		
 		//Show map
-		namedWindow( windowName[i], WINDOW_AUTOSIZE );
+		if(showLocalMaps)
+			namedWindow( windowName[i], WINDOW_AUTOSIZE );
 		
 		
 		//Enable motor function
@@ -340,7 +343,8 @@ int main(int argc, char *argv[])
 			
 					
 			//Display current map
-			imshow(windowName[i],127*maps[i]);
+			if(showLocalMaps)
+				imshow(windowName[i],127*maps[i]);
 			//waitKey(1);
 			
 			//Output exploration data and time
