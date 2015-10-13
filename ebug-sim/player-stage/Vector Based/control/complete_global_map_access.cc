@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	RangerProxy* ranger[NO_ROBOTS];
 
 	//Set aside space for each local map
-	Mat maps[NO_ROBOTS];
+	//Mat maps[NO_ROBOTS];
 	char windowName[NO_ROBOTS][10];
 		
 	//Create global map
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 		ebugs[i] = new PlayerClient("localhost", ports[i]);
 		pos[i] = new Position2dProxy(ebugs[i], 0);
 		ranger[i] = new RangerProxy(ebugs[i], 0);
-		maps[i] = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);//Signed chars, Scalar(0,0,0));
+		//maps[i] = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);//Signed chars, Scalar(0,0,0));
 		sprintf( windowName[i], "MAP %d", i);		
 		
 		std::cout << "Created robot #" << i << std::endl;
@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
 		std::cout << "\tClient:\t\t" << ebugs[i] << std::endl;
 		std::cout << "\tPos2dProxy:\t" << pos[i] << std::endl;
 		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl;
-		std::cout << "\tMap:\t\t" << &maps[i] << std::endl<< std::endl;
+		//std::cout << "\tMap:\t\t" << &maps[i] << std::endl<< std::endl;
 		
 		//Show map
-		if(showLocalMaps)
-			namedWindow( windowName[i], WINDOW_AUTOSIZE );
+		//if(showLocalMaps)
+		//	namedWindow( windowName[i], WINDOW_AUTOSIZE );
 		
 		
 		//Enable motor function
@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
 			double y=0;
 			
 			//Mark map with ranger data
-			markMap(maps[i], ranger[i], pos[i]);
+			markMap(globalMap, ranger[i], pos[i]);
 			
 			//Communicate maps
-			copyMapIntoGlobal(maps[i], globalMap);
+			//copyMapIntoGlobal(maps[i], globalMap);
 			//copyGlobalIntoMap(maps[i], globalMap);
 						
 			//Make adjustments to avoid obsticles
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 			avoidCollision(i, &x, &y, pos);
 			
 			//Seek frontier points from map to create virtual attraction force
-			seekFrontier(&x, &y, maps[i], pos[i]);
+			seekFrontier(&x, &y, globalMap, pos[i]);
 			
 			//Normalise drive vector
 			double magnitude=sqrt(pow(x,2)+pow(y,2));
@@ -105,8 +105,8 @@ int main(int argc, char *argv[])
 				
 				
 			//Display current map
-			if(showLocalMaps)
-				imshow(windowName[i],maps[i]+10);
+			//if(showLocalMaps)
+			//	imshow(windowName[i],maps[i]+10);
 			
 			//Output exploration data and time
 			double explored = getExplored(globalMap);

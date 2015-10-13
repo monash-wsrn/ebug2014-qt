@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 	using namespace PlayerCc;
 	using namespace cv;
 
-	bool showLocalMaps = false;
+	bool showLocalMaps = true;
   try
   {
 	//Create list of ebugs and their proxies
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 			//Communicate maps
 			copyMapIntoGlobal(maps[i], globalMap);
 			//copyGlobalIntoMap(maps[i], globalMap);
+			shareMaps(i, maps, pos);
 						
 			//Make adjustments to avoid obsticles
 			avoidWall(&x, &y, ranger[i]);
@@ -106,14 +107,14 @@ int main(int argc, char *argv[])
 				
 			//Display current map
 			if(showLocalMaps)
-				imshow(windowName[i],maps[i]+10);
+				imshow(windowName[i],85*maps[i]+42);
 			
 			//Output exploration data and time
 			double explored = getExplored(globalMap);
 			std::cout << explored << "\t" << pos[i]->GetDataTime() << std::endl;			
 		}
 		
-		imshow(globalWindow,40*globalMap);
+		imshow(globalWindow,85*globalMap+42);
 		pressedKey=waitKey(1);
 		
 		//Wait one second

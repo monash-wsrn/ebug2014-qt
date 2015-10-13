@@ -12,172 +12,122 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 
+//Number of robots in simulation
 #define NO_ROBOTS 5
-#define MAP_SIZE 100
+
+//Size of stored map memory
+#define MAP_SIZE 500
 //MAP_SCALE = MAP_SIZE (pixels) / Simulation size (metres)
-#define MAP_SCALE 10
+#define MAP_SCALE 50
 
+//Share maps to neighbours within this radius (metres)
+#define MAP_SHARING_DIST 1
+//Only consider frontiers if within radius (metres)
+#define CONSIDER_FRONT_DIST 3
 
-#define Q_WALL (-1)
-#define Q_ROBOT (-1)
-#define Q_FRONTIER (1)
+//Charges of virtual point forces
+#define Q_WALL (-100)
+#define Q_ROBOT (-100)
+#define Q_FRONTIER (100)
 
+//Dissipation factors of virtual forces
+#define D_WALL (2)
+#define D_ROBOT (2)
+#define D_FRONTIER (2)
+
+//Movement bias factors
 #define K_FWD 0.1
 #define B_FWD 0.15
 #define K_ROT 0.5*M_PI
 #define B_ROT 0
 
-#define DRAW_LINE_THICKNESS 2
-#define DRAW_POINT_THICKNESS 2
-
+//Drawing thickness parameters
+#define DRAW_LINE_THICKNESS 6
+#define DRAW_POINT_THICKNESS 4
 
 
 /*
-* RandomWalk: randomly assigns forward and rotation speeds
-* between 0 and internal maximums.
+* Apply virtual force from each ranger sensor returning a value lower than the maximum.
 */
-void RandomWalk(double *speedForward, double *speedRotate)
+void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 {
-	double forwardMax = 0.3; //Maximum forward speed
-	int rotateMax = 60; //Maximum turning speed in + and - directions
-	
-	//Variables to hold chosen speeds, later copied into args
-	double forwardSelect, rotateSelect;
-	
-	//Select forward speed between 0 and forwardMax with 1/100 granuality
-	forwardSelect = ((float)(rand()%101)/100)*forwardMax;
-		
-	//Select rotational speed between -rotateMax and +rotateMax
-	rotateSelect = rotateMax-(rand()%(2*rotateMax));
-	
-	//std::cout << "Speed set to: " << forwardSelect << "\tRotation set to: " << rotateSelect << std::endl;
-
-	//Assign selected speeds to arguments
-	*speedForward = forwardSelect;
-	*speedRotate = rotateSelect;
-
-}
-
-/*
-* Set movement variables to make robot drive straight forward.
-*/
-void StraightForward(double *speedForward, double *speedRotate){
-	double speed = 0.3;
-	double rotation = 0;
-	
-	//Assign selected speeds to arguments
-	*speedForward = speed;
-	*speedRotate = rotation;
-}
-
-
-/*
-* Measure the rangers around the centre and 1/4 and 3/4 indexes and move away from detected
-* walls.
-*/
-void avoidWall(double *speedForward, double *speedRotate, PlayerCc::RangerProxy *ranger)
-{
-	double speed = 0.3;
-	double rotation = 0;
-	
 	int availableRangers = ranger->GetRangeCount();
 	//std::cout << "Rangers available: " << availableRangers << std::endl;
 	
 	//Sometimes the ranger elements have not yet loaded which will cause segmentation fault if accessed.
 	if(availableRangers==0)
 		return;
-
-	//Index of rangers to check for walls
-	int midRanger = availableRangers/2;
-	int leftRanger = 3*availableRangers/4;
-	int rightRanger = availableRangers/4;
 	
 	
-	//Average range readings from these directions
-	double midAverage = (ranger->GetRange(midRanger)+ranger->GetRange(midRanger+1)+ranger->GetRange(midRanger-1))/3;
-	double leftAverage = (ranger->GetRange(leftRanger)+ranger->GetRange(leftRanger-1)+ranger->GetRange(leftRanger-2))/3;
-	double rightAverage = (ranger->GetRange(rightRanger)+ranger->GetRange(rightRanger+1)+ranger->GetRange(rightRanger+2))/3;
+	//Update configuration data of ranger
+	ranger->RequestConfigure();
 	
+	//Angular Res calculation seems to be wrong from ranger->GetAngularRes() (Player/Stage BUG)
+	//Use this instead (note the -1)
+	double getAngularRes = (ranger->GetMaxAngle()-ranger->GetMinAngle())/(ranger->GetRangeCount()-1);
 	
-	//Print readings
-	//std::cout << "Average range reading from front: " << midAverage << std::endl;
-	//std::cout << "Average range reading from left: " << leftAverage << std::endl;
-	//std::cout << "Average range reading from right: " << rightAverage << std::endl;
-	
-	
-	//Distance to wall that triggers a reaction
-	double detectionDistance = 0.5;
-
-	//Angle speed to turn away from an obsticle in degrees/sec
-	int avoidRotateSpeed = 50;
-
-	//Compare readings to threshold
-	if(leftAverage < detectionDistance)
-	{	//Obsticle at front left
-		//std::cout << "Wall at left" << std::endl;
-		speed = 0.1;
-		rotation = (-1)*avoidRotateSpeed;
-	}
-	if(rightAverage < detectionDistance)
-	{	//Obsticle at front right
-		//std::cout << "Wall at right" << std::endl;
-		speed = 0.1;
-		rotation = (1)*avoidRotateSpeed;
-	}
-	if(midAverage < detectionDistance)
-	{	//Obsticle directly in front
-		//std::cout << "Wall at front" << std::endl;
-		speed = 0; //Stop
-		if(rotation==0)
-			rotation=(-1)*avoidRotateSpeed; //Spin right if not spinning
+	//For each ranger
+	for(int i=0; i<ranger->GetRangeCount(); i++)
+	{
+		//Read ranger as polar coordinates
+		double aRanger = ranger->GetMinAngle() + (i*getAngularRes);
+		double rRanger = ranger->GetRange(i);
+		
+		if(rRanger<ranger->GetMaxRange() )
+		{
+			//Wall has been seen
+			
+			//Calculate virtual force
+			double rForce = (rRanger>0.01) ? Q_WALL / pow(rRanger,D_WALL) : Q_WALL*10000;
+			
+			//Convert to cartesian
+			double xForce = rForce*cos(aRanger);
+			double yForce = rForce*sin(aRanger);
+			
+			//Apply forces
+			(*x) += xForce;
+			(*y) += yForce;
+			
+		}
 	}
 	
-	//Assign selected speeds to arguments
-	*speedForward = speed;
-	*speedRotate = rotation;
 }
 
 /*
 * Make adjustments to heading to avoid collision with another robot
 */
-void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::Position2dProxy** pos)
+void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
 {
-	double tooClose = 0.6;
-				
-	//Check distance and heading to each neighbour and take action if collision incoming
+	//Get x,y global position and orientation of robot in focus (i)
+	double xThis = pos[i]->GetXPos();
+	double yThis = pos[i]->GetYPos();
+	double aThis = pos[i]->GetYaw();
+	
+	//For each other robot calculate the virtual force
 	for(int k=0; k<NO_ROBOTS; k++)
 	{
-		if(k!=i)
+		if(k!=i) //Exculde this robot
 		{
-			//Calculate Euler distance to neighbours
-			double dist=sqrt(pow(pos[i]->GetXPos()-pos[k]->GetXPos(),2)+pow(pos[i]->GetYPos()-pos[k]->GetYPos(),2));
-			//std::cout << "Distance from "<<i<<" to " << k << ":\t"<<dist<<std::endl;
-			if(dist<tooClose)
-			{
-				//Slow down
-				*speedForward = 0.1;
-				
-				//Angle to close neighbour
-				double angle=atan2(pos[k]->GetYPos()-pos[i]->GetYPos(),pos[k]->GetXPos()-pos[i]->GetXPos())*180/M_PI;
-				//Direction this robot is heading
-				double yaw = pos[i]->GetYaw()*180/M_PI;
-				//Relative angle to close neighbour
-				double heading = yaw-angle;
-				
-				//std::cout << "angle:\t"<< angle <<std::endl;
-				//std::cout << "yaw:\t"<< yaw <<std::endl;
-				//std::cout << "heading:\t"<< heading <<std::endl;
-				
-				if(abs(heading)<90)
-				{
-					//std::cout << "COLLISION INCOMING!" << std::endl;
-					//Driving towards collision!
-					*speedForward = 0;
-					*speedRotate = (heading>0 ? +180 : -180 );
-					return;
-				}
+			//Global position of neighbour
+			double xPos = pos[k]->GetXPos();
+			double yPos = pos[k]->GetYPos();
 			
-			}
+			//Calculate Euler distance to neighbour
+			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
+			//Calculate relative orientation to neighbour
+			double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
+			
+			
+			//Calculate virtual force
+			double rForce = (dist>0.001) ? Q_ROBOT / pow(dist,D_ROBOT) : Q_ROBOT*10000;
+			
+			//Convert to cartesian
+			double xForce = rForce*cos(angle);
+			double yForce = rForce*sin(angle);
+			
+			//Apply forces
+			(*x) += xForce;
+			(*y) += yForce;
 		}
 	}
 				
@@ -185,10 +135,47 @@ void avoidCollision(int i, double *speedForward, double *speedRotate, PlayerCc::
 
 /*
 * Create virtual attraction forces to frontier points marked on map with -2
+* Only consider points within distance of CONSIDER_FRONT_DIST
 */
 void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy* pos)
-{}
-
+{
+	//Get x,y global position and orientation of robot in focus
+	double xThis = pos->GetXPos();
+	double yThis = pos->GetYPos();
+	double aThis = pos->GetYaw();
+	
+	//Check each cell for frontier marking and apply force
+	for(int row=0; row<MAP_SIZE; row++)
+		for(int col=0; col<MAP_SIZE; col++)
+			if((int)map.at<schar>(row,col)==-2)
+			{
+				//Frontier mark on map
+				//Scale to a global coordinate
+				double xPos = (double)row/MAP_SCALE - 5;
+				double yPos = (double)col/(-1*MAP_SCALE) +5;
+				
+				//Calculate Euler distance to frontier
+				double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
+				if(dist<CONSIDER_FRONT_DIST)
+				{
+					//Calculate relative orientation to neighbour
+					double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
+			
+			
+					//Calculate virtual force
+					double rForce = (dist>0.001) ? Q_FRONTIER/pow(dist,D_FRONTIER) : Q_FRONTIER*10000;
+			
+					//Convert to cartesian
+					double xForce = rForce*cos(angle);
+					double yForce = rForce*sin(angle);
+			
+					//Apply forces
+					(*x) += xForce;
+					(*y) += yForce;
+				}
+			}
+	
+}
 
 /*
 * Mark the local map with collected information from rangers. -1 for empty space and +1 for a wall
@@ -232,11 +219,11 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 			line(map, ptRanger, ptRanger, 1, DRAW_POINT_THICKNESS);
 		}else{
 			//Mark unexplored frontier (make sure to to overwrite -2)
-			if((-1)!=map.at<char>(ptRanger)) //check if unexplored point
+			if((-1)!=map.at<signed char>(ptRanger)) //check if unexplored point
 			{
 				//Draw line from robot to end of ranger reading
 				line(map, ptRobot, ptRanger, -1,DRAW_LINE_THICKNESS);
-				line(map, ptRanger, ptRanger, -2, 1);
+				line(map, ptRanger, ptRanger, -2, 1); //Mark fronteir with 1pxl 
 			}else{
 				//Draw line from robot to end of ranger reading
 				line(map, ptRobot, ptRanger, -1,DRAW_LINE_THICKNESS);
@@ -255,9 +242,51 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 }
 
 /*
-* Copy selected map into the global map database and calculate percentage of explored area
+* Share map of robot i with neighbours within MAP_SHARING_DIST distance
 */
-double shareMaps(int i, cv::Mat map, cv::Mat globalMap, PlayerCc::Position2dProxy **pos)
+void shareMaps(int i, cv::Mat *maps, PlayerCc::Position2dProxy **pos)
+{
+	using namespace cv;
+	//Get x,y global position and orientation of robot in focus (i)
+	double xThis = pos[i]->GetXPos();
+	double yThis = pos[i]->GetYPos();
+	double aThis = pos[i]->GetYaw();
+	
+	//For each other robot calculate the virtual force
+	for(int k=0; k<NO_ROBOTS; k++)
+	{
+		if(k!=i) //Exculde this robot
+		{
+			//Global position of neighbour
+			double xPos = pos[k]->GetXPos();
+			double yPos = pos[k]->GetYPos();
+			
+			//Calculate Euler distance to neighbour
+			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
+			
+			if(dist<MAP_SHARING_DIST)
+			{
+				for(int row=0; row<MAP_SIZE; row++)
+				{
+					for(int col=0; col<MAP_SIZE; col++)
+					{
+						schar pixel=maps[i].at<schar>(row,col);
+						if(pixel!=0)
+							maps[k].at<schar>(row,col)=pixel;
+					}
+				}
+			}
+		}
+	}
+	
+}
+
+/*
+* Copy selected map into the global map database
+* Keep original global data if new data is unexplored or
+* if new data is frontier and old data is not unexplored
+*/
+void copyMapIntoGlobal(cv::Mat map, cv::Mat globalMap)
 {
 	using namespace cv;
 	
@@ -267,17 +296,35 @@ double shareMaps(int i, cv::Mat map, cv::Mat globalMap, PlayerCc::Position2dProx
 		for(int col=0; col<MAP_SIZE; col++)
 		{
 			schar pixel=map.at<schar>(row,col);
-			if(pixel!=0)
+			if(pixel==1 || pixel==-1 || (pixel==-2 && globalMap.at<schar>(row,col)==0))
 				globalMap.at<schar>(row,col)=pixel;
 		}
 	}
+	
+}
 
-	//Return percentage of explored area
+/*
+* Return the percentage of the global map that has been explored
+*/
+double getExplored(cv::Mat globalMap)
+{
+	using namespace cv;
+
+	//Calculate percentage of explored area
 	double exploredPxls = countNonZero(globalMap);
 	double explored = 100*exploredPxls/(MAP_SIZE*MAP_SIZE);
 	
 	return explored;
 	
+}
+
+/*
+* Copy the global map directly into this local map
+*/
+void copyGlobalIntoMap(cv::Mat map, cv::Mat globalMap)
+{
+	using namespace cv;
+	globalMap.copyTo(map);
 }
 
 
@@ -292,7 +339,7 @@ int main(int argc, char *argv[])
 	using namespace PlayerCc;
 	using namespace cv;
 
-	bool showLocalMaps = false;
+	bool showLocalMaps = true;
   try
   {
 	//Create list of ebugs and their proxies
@@ -322,10 +369,12 @@ int main(int argc, char *argv[])
 		sprintf( windowName[i], "MAP %d", i);		
 		
 		std::cout << "Created robot #" << i << std::endl;
+		std::cout << "  Memory locations:" << std::endl;
 		std::cout << "\tPort:\t" << ports[i] << std::endl;
 		std::cout << "\tClient:\t\t" << ebugs[i] << std::endl;
 		std::cout << "\tPos2dProxy:\t" << pos[i] << std::endl;
-		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl<< std::endl;
+		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl;
+		std::cout << "\tMap:\t\t" << &maps[i] << std::endl<< std::endl;
 		
 		//Show map
 		if(showLocalMaps)
@@ -337,12 +386,14 @@ int main(int argc, char *argv[])
 		
 	}
 	
-	//To hold percentage explored
-	double explored=0;
+	//Print column titles for std output
 	std::cout << "Explored (%)\tElapsed Simulation Time (s)" << std::endl;
-			
+	
+	waitKey(0); //Pause here until keyboard press (gives user time to arrange windows manually)	
+	
+	int pressedKey=-1;	
 	//Control
-	while(true)
+	while(-1==pressedKey)
 	{
 		for(int i=0; i<NO_ROBOTS; i++)
 		{
@@ -357,14 +408,15 @@ int main(int argc, char *argv[])
 			markMap(maps[i], ranger[i], pos[i]);
 			
 			//Communicate maps
-			explored = shareMaps(i, maps[i], globalMap, pos);			
-			
+			copyMapIntoGlobal(maps[i], globalMap);
+			//copyGlobalIntoMap(maps[i], globalMap);
+						
 			//Make adjustments to avoid obsticles
 			avoidWall(&x, &y, ranger[i]);
 			avoidCollision(i, &x, &y, pos);
 			
 			//Seek frontier points from map to create virtual attraction force
-			//seekFrontier(&x, &y, maps[i], pos[i]);
+			seekFrontier(&x, &y, maps[i], pos[i]);
 			
 			//Normalise drive vector
 			double magnitude=sqrt(pow(x,2)+pow(y,2));
@@ -382,23 +434,21 @@ int main(int argc, char *argv[])
 				
 			//Display current map
 			if(showLocalMaps)
-			{
-				std::cout<<"SHOWING LOCAL MAP"<<std::endl;
-				imshow(windowName[i],maps[i]+10);
-				std::cout<<"DONE"<<std::endl;
-			}
+				imshow(windowName[i],85*maps[i]+42);
 			
 			//Output exploration data and time
+			double explored = getExplored(globalMap);
 			std::cout << explored << "\t" << pos[i]->GetDataTime() << std::endl;			
 		}
 		
-		imshow(globalWindow,40*globalMap);
-		waitKey(1);
+		imshow(globalWindow,85*globalMap+42);
+		pressedKey=waitKey(1);
 		
 		//Wait one second
 		sleep(0.01);
 		
 	}
+	destroyAllWindows(); //Close opencv windows
 
   }
   catch (PlayerCc::PlayerError & e)
@@ -410,5 +460,6 @@ int main(int argc, char *argv[])
 		
 	return 0;
 }
+
 
 
