@@ -342,6 +342,9 @@ int main(int argc, char *argv[])
 			pos[i]->SetSpeed(speedForward, dtor(speedRotate));
 			//pos[i]->SetSpeed(0, dtor(0));
 			
+			//Correct robot position if moved through wall
+			if(pos[i]->GetXPos()>5 || pos[i]->GetXPos()<-5 || pos[i]->GetYPos()>5 || pos[i]->GetYPos()<-5)
+				pos[i]->GoTo(0,0, pos[i]->GetYaw()); //Aim for centre of map
 					
 			//Display current map
 			if(showLocalMaps)

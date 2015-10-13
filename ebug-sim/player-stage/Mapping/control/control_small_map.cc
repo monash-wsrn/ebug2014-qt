@@ -13,8 +13,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #define NO_ROBOTS 5
-#define MAP_SIZE 500
-#define MAP_SCALE 50
+#define MAP_SIZE 100
+#define MAP_SCALE 10
 
 #define DRAW_LINE_THICKNESS 4
 #define DRAW_POINT_THICKNESS 8
@@ -278,7 +278,6 @@ int main(int argc, char *argv[])
 	Mat globalMap = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);
 	namedWindow( globalWindow, WINDOW_AUTOSIZE );
 	
-	globalMap.at<schar>(0,0)=-2;
 	
 	//Initialise each ebug, proxy and map
 	for(int i=0; i<NO_ROBOTS; i++)

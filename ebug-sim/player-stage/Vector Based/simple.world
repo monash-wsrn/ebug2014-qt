@@ -1,0 +1,45 @@
+
+# Desc: Configuration for simulated world and ebug robots
+# Author: Matthew Boys
+# Date: September 2015
+
+include "robots/ebug.inc"
+include "maps/map.inc"
+
+##### STAGE SIMULATION SETUP ######
+
+name "eBug Swarm Simulation" #Window title
+quit_time 0 #Pause (GUI) or quit (headless) after this number of simulated seconds
+paused 0
+resolution 0.02 #Of underlying bitmap (metres)
+
+# configure the GUI window
+window
+(
+  size [ 635 666 ] # in pixels
+  scale 64.000   # pixels per meter
+  center [ -0.024  -0.000 ]
+  rotate [ 0.000  0.000 ]
+  			
+  show_data 1              # 1=on 0=off
+)
+
+# load an environment bitmap
+floorplan
+( 
+  name "floor"
+  size [10.000 10.000 0.300]
+  pose [0.000 0.000 0.000 0.000]
+  bitmap "bitmaps/cave.png"
+)
+
+
+##### ADD SIMULATED ROBOTS ###########
+# Also include ports in simple.cfg
+
+ebug(	name "r0"	pose [ -4.145 -4.059 0.000 90.000 ]	)
+ebug(	name "r1"	pose [ -3.483 -3.999 0.000 75.000 ]	)
+ebug(	name "r2"	pose [ -2.894 -4.017 0.000 45.000 ]	)
+ebug(	name "r3"	pose [ -3.996 -3.464 0.000 90.000 ]	)
+ebug(	name "r4"	pose [ -2.994 -3.458 0.000 0.000 ]	)
+
