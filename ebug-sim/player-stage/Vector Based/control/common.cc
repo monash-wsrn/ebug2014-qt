@@ -1,5 +1,5 @@
 //Number of robots in simulation
-#define NO_ROBOTS 12
+#define NO_ROBOTS 8
 
 //Size of stored map memory
 #define MAP_SIZE 500
@@ -13,12 +13,12 @@
 
 //Charges of virtual point forces
 #define Q_WALL (-100)
-#define Q_ROBOT (-100)
+//define Q_ROBOT (-100)
 #define Q_FRONTIER (100)
 
 //Dissipation factors of virtual forces
 #define D_WALL (2)
-#define D_ROBOT (2)
+//define D_ROBOT (2)
 #define D_FRONTIER (2)
 
 //Movement bias factors
@@ -28,7 +28,7 @@
 #define B_ROT 0
 
 //Drawing thickness parameters
-#define DRAW_LINE_THICKNESS 6
+#define DRAW_LINE_THICKNESS 4
 #define DRAW_POINT_THICKNESS 4
 
 
@@ -94,45 +94,6 @@ void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 	
 }
 
-/*
-* Make adjustments to heading to avoid collision with another robot
-*/
-void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
-{
-	//Get x,y global position and orientation of robot in focus (i)
-	double xThis = pos[i]->GetXPos();
-	double yThis = pos[i]->GetYPos();
-	double aThis = pos[i]->GetYaw();
-	
-	//For each other robot calculate the virtual force
-	for(int k=0; k<NO_ROBOTS; k++)
-	{
-		if(k!=i) //Exculde this robot
-		{
-			//Global position of neighbour
-			double xPos = pos[k]->GetXPos();
-			double yPos = pos[k]->GetYPos();
-			
-			//Calculate Euler distance to neighbour
-			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
-			//Calculate relative orientation to neighbour
-			double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
-			
-			
-			//Calculate virtual force
-			double rForce = (dist>0.001) ? Q_ROBOT / pow(dist,D_ROBOT) : Q_ROBOT*10000;
-			
-			//Convert to cartesian
-			double xForce = rForce*cos(angle);
-			double yForce = rForce*sin(angle);
-			
-			//Apply forces
-			(*x) += xForce;
-			(*y) += yForce;
-		}
-	}
-				
-}
 
 /*
 * Create virtual attraction forces to frontier points marked on map with -2
@@ -145,6 +106,7 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 	double yThis = pos->GetYPos();
 	double aThis = pos->GetYaw();
 	
+		
 	//Check each cell for frontier marking and apply force
 	for(int row=0; row<MAP_SIZE; row++)
 		for(int col=0; col<MAP_SIZE; col++)
