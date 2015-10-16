@@ -1,5 +1,5 @@
 //Number of robots in simulation
-#define NO_ROBOTS 5
+#define NO_ROBOTS 12
 
 //Size of stored map memory
 #define MAP_SIZE 500

@@ -1,0 +1,41 @@
+//This function is no-longer needed as the ebug ranger sensor can detect other ebugs
+
+/*
+* Make adjustments to heading to avoid collision with another robot
+*/
+void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
+{
+	//Get x,y global position and orientation of robot in focus (i)
+	double xThis = pos[i]->GetXPos();
+	double yThis = pos[i]->GetYPos();
+	double aThis = pos[i]->GetYaw();
+	
+	//For each other robot calculate the virtual force
+	for(int k=0; k<NO_ROBOTS; k++)
+	{
+		if(k!=i) //Exculde this robot
+		{
+			//Global position of neighbour
+			double xPos = pos[k]->GetXPos();
+			double yPos = pos[k]->GetYPos();
+			
+			//Calculate Euler distance to neighbour
+			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
+			//Calculate relative orientation to neighbour
+			double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
+			
+			
+			//Calculate virtual force
+			double rForce = (dist>0.001) ? Q_ROBOT / pow(dist,D_ROBOT) : Q_ROBOT*10000;
+			
+			//Convert to cartesian
+			double xForce = rForce*cos(angle);
+			double yForce = rForce*sin(angle);
+			
+			//Apply forces
+			(*x) += xForce;
+			(*y) += yForce;
+		}
+	}
+				
+}

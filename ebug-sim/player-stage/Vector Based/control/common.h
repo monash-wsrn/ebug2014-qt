@@ -12,25 +12,27 @@
 #define CONSIDER_FRONT_DIST 3
 
 //Charges of virtual point forces
-#define Q_WALL (-100)
-#define Q_ROBOT (-100)
-#define Q_FRONTIER (100)
+#define Q_WALL (-1)
+#define Q_ROBOT (-1)
+#define Q_FRONTIER (1)
 
-//Dissipation factors of virtual forces
+//Dissipation index of virtual forces
 #define D_WALL (2)
 #define D_ROBOT (2)
 #define D_FRONTIER (2)
 
 //Movement bias factors
 #define K_FWD 0.1
-#define B_FWD 0.15
-#define K_ROT 0.5*M_PI
+#define B_FWD 0.2
+#define K_ROT 0.1*M_PI
 #define B_ROT 0
 
 //Drawing thickness parameters
 #define DRAW_LINE_THICKNESS 6
 #define DRAW_POINT_THICKNESS 4
 
+//Scale map data from (-2,1) to (-127,128)
+#define SHOW_MAP(x) 85*x+42
 
 
 //Standard C libraries
@@ -94,45 +96,7 @@ void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 	
 }
 
-/*
-* Make adjustments to heading to avoid collision with another robot
-*/
-void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
-{
-	//Get x,y global position and orientation of robot in focus (i)
-	double xThis = pos[i]->GetXPos();
-	double yThis = pos[i]->GetYPos();
-	double aThis = pos[i]->GetYaw();
-	
-	//For each other robot calculate the virtual force
-	for(int k=0; k<NO_ROBOTS; k++)
-	{
-		if(k!=i) //Exculde this robot
-		{
-			//Global position of neighbour
-			double xPos = pos[k]->GetXPos();
-			double yPos = pos[k]->GetYPos();
-			
-			//Calculate Euler distance to neighbour
-			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
-			//Calculate relative orientation to neighbour
-			double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
-			
-			
-			//Calculate virtual force
-			double rForce = (dist>0.001) ? Q_ROBOT / pow(dist,D_ROBOT) : Q_ROBOT*10000;
-			
-			//Convert to cartesian
-			double xForce = rForce*cos(angle);
-			double yForce = rForce*sin(angle);
-			
-			//Apply forces
-			(*x) += xForce;
-			(*y) += yForce;
-		}
-	}
-				
-}
+
 
 /*
 * Create virtual attraction forces to frontier points marked on map with -2

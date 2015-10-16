@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	using namespace PlayerCc;
 	using namespace cv;
 
-	bool showLocalMaps = true;
+	bool showLocalMaps = false;
   try
   {
 	//Create list of ebugs and their proxies
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 			//avoidCollision(i, &x, &y, pos);
 			
 			//Seek frontier points from map to create virtual attraction force
-			seekFrontier(&x, &y, maps[i], pos[i]);
+			//seekFrontier(&x, &y, maps[i], pos[i]);
 			
 			//Normalise drive vector
 			double magnitude=sqrt(pow(x,2)+pow(y,2));
@@ -107,14 +107,14 @@ int main(int argc, char *argv[])
 				
 			//Display current map
 			if(showLocalMaps)
-				imshow(windowName[i],maps[i]+10);
+				imshow(windowName[i],SHOW_MAP(maps[i]) );
 			
 			//Output exploration data and time
 			double explored = getExplored(globalMap);
 			std::cout << explored << "\t" << pos[i]->GetDataTime() << "\t" << i << std::endl;			
 		}
 		
-		imshow(globalWindow,40*globalMap);
+		imshow(globalWindow,SHOW_MAP(globalMap));
 		pressedKey=waitKey(1);
 		
 		//Gives time for windows to update

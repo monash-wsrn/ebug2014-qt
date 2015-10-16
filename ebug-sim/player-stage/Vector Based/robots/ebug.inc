@@ -2,7 +2,7 @@ define ebug position
 (
 	gui_nose 1                  	# Draw a nose on the robot so we can see which way it points
 	obstacle_return 1           	# Can hit things.
-	ranger_return 0.5            	# reflects sonar beams
+	ranger_return 1            	# reflects sonar beams
 	blob_return 1               	# Seen by blobfinders  
 	fiducial_return 1           	# Seen as "1" fiducial finders
 
@@ -116,12 +116,13 @@ define ebug position
 define ebug_ranger ranger
 (
 	sensor(
-		pose [ 0 0 0 0 ]
+		#A negative z pose lets ranger detect other robots (otherwise sits above them)
+		pose [ 0 0 -0.05 0 ]
 	
 		#size [0.036 0.080 0.015 ]
 		range [0 2] # [min max]
-		fov 315 # Field of view in degrees from first to last ranger
-		samples 15
+		fov 350 # Field of view in degrees from first to last ranger
+		samples 35
 	)
 	
 
