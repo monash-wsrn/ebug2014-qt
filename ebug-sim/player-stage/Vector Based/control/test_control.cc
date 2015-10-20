@@ -1,11 +1,7 @@
 #include "common.h"
 
 /*
-* Main control to initialise all robots and related proxies
-* then loop through control code to read sensors and react.
-* This algorithm uses virtual forces from robots, walls and local frontiers
-* to influence movement.
-* There is no map sharing between robots but all robots copy map into local map.
+* Main program for printing data with NO movements for testing functions
 */
 int main(int argc, char *argv[])
 {
@@ -73,6 +69,8 @@ int main(int argc, char *argv[])
 			//Update sensor data
 			ebugs[i]->Read();
 			
+			
+			
 			//Variables for robot goal vector
 			double x=0;
 			double y=0;
@@ -97,12 +95,12 @@ int main(int argc, char *argv[])
 			y=(magnitude>0.001 ? y/magnitude : 0);	
 			
 			//Apply speeds to motors
-			pos[i]->SetSpeed(x*K_FWD+B_FWD, y*K_ROT+B_ROT);
+			//pos[i]->SetSpeed(x*K_FWD+B_FWD, y*K_ROT+B_ROT);
 			
 			
 			//Correct robot position if moved through wall
-			if(pos[i]->GetXPos()>5 || pos[i]->GetXPos()<-5 || pos[i]->GetYPos()>5 || pos[i]->GetYPos()<-5)
-				pos[i]->GoTo(0,0, pos[i]->GetYaw()); //Aim for centre of map
+			//if(pos[i]->GetXPos()>5 || pos[i]->GetXPos()<-5 || pos[i]->GetYPos()>5 || pos[i]->GetYPos()<-5)
+			//	pos[i]->GoTo(0,0, pos[i]->GetYaw()); //Aim for centre of map
 				
 				
 			//Display current map

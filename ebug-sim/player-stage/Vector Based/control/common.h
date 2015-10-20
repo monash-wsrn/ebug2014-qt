@@ -14,12 +14,12 @@
 
 //Charges of virtual point forces
 #define Q_WALL (-100)
-//define Q_ROBOT (-100)
+#define Q_ROBOT (-100)
 #define Q_FRONTIER (100)
 
 //Dissipation factors of virtual forces
 #define D_WALL (2)
-//define D_ROBOT (2)
+#define D_ROBOT (2)
 #define D_FRONTIER (2)
 
 //Movement bias factors
@@ -187,7 +187,7 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 		
 		
 				//Calculate virtual force
-				double rForce = (dist>0.NEARLY_ZERO) ? Q_FRONTIER/pow(dist,D_FRONTIER) : Q_FRONTIER / pow(NEARLY_ZERO,D_ROBOT);
+				double rForce = (dist>NEARLY_ZERO) ? Q_FRONTIER/pow(dist,D_FRONTIER) : Q_FRONTIER / pow(NEARLY_ZERO,D_ROBOT);
 		
 				//Convert to cartesian
 				double xForce = rForce*cos(angle);
