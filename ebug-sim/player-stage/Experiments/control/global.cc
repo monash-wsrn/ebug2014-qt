@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	RangerProxy* ranger[NO_ROBOTS];
 
 	//Set aside space for each local map
-	Mat maps[NO_ROBOTS];
+//	Mat maps[NO_ROBOTS];
 	char windowName[NO_ROBOTS][10];
 		
 	//Create global map
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 		ebugs[i] = new PlayerClient("localhost", ports[i]);
 		pos[i] = new Position2dProxy(ebugs[i], 0);
 		ranger[i] = new RangerProxy(ebugs[i], 0);
-		maps[i] = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);//Signed chars, Scalar(0,0,0));
+//		maps[i] = Mat::zeros(MAP_SIZE, MAP_SIZE, CV_8SC1);//Signed chars, Scalar(0,0,0));
 		sprintf( windowName[i], "MAP %d", i);		
 		
 		std::cout << "Created robot #" << i << std::endl;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 		std::cout << "\tClient:\t\t" << ebugs[i] << std::endl;
 		std::cout << "\tPos2dProxy:\t" << pos[i] << std::endl;
 		std::cout << "\tRanger:\t\t" << ranger[i] << std::endl;
-		std::cout << "\tMap:\t\t" << &maps[i] << std::endl<< std::endl;
+//		std::cout << "\tMap:\t\t" << &maps[i] << std::endl<< std::endl;
 		
 		//Show map
 //		if(showLocalMaps)
@@ -83,11 +83,11 @@ int main(int argc, char *argv[])
 			/*** MAP MARKING AND SWAPPING ***/
 			
 			//Mark map with ranger data
-			markMap(maps[i], ranger[i], pos[i]);
+			markMap(globalMap, ranger[i], pos[i]);
 			
 			//Communicate maps
-			copyMapIntoGlobal(maps[i], globalMap);
-			shareMaps(i, maps, pos);
+//			copyMapIntoGlobal(maps[i], globalMap);
+//			shareMaps(i, maps, pos);
 			
 			
 			
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 			//Seek frontier points from map to create virtual attraction force
 			double xFront=0;
 			double yFront=0;
-			seekFrontier(&xFront, &yFront, maps[i], pos[i]);
+			seekFrontier(&xFront, &yFront, globalMap, pos[i]);
 			
 			
 			

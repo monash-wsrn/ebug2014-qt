@@ -13,7 +13,7 @@
 
 
 //Share maps to neighbours within this radius (metres)
-#define MAP_SHARING_DIST 1
+#define MAP_SHARING_DIST 3
 
 //Charges of virtual point forces
 #define Q_WALL (-1)
