@@ -2,7 +2,7 @@
 //This does not include the main functions so add it using #include "common.h"
 
 //Number of robots in simulation
-#define NO_ROBOTS 1
+#define NO_ROBOTS 2
 
 //Size of stored map memory
 #define MAP_SIZE 500
@@ -17,7 +17,7 @@
 
 //Charges of virtual point forces
 #define Q_WALL (-100)
-#define Q_ROBOT (-100)
+#define Q_ROBOT (-800)
 #define Q_FRONTIER (100)
 
 //Dissipation factors of virtual forces
@@ -182,10 +182,10 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 			{
 				//Frontier mark on map
 				//Scale to a global coordinate
-				double xPos = (double)jMap/MAP_SCALE - 5;
-				double yPos = -1.0*(double)iMap/MAP_SCALE +5;
+				double xPos = (double)jMap/MAP_SCALE - (SIM_SIZE/2);
+				double yPos = -1.0*(double)iMap/MAP_SCALE + (SIM_SIZE/2);
 				
-				std::cout<<"FRONT\t\t("<<iMap<<","<<jMap<<")\t("<<xPos<<","<<yPos<<")"<<std::endl;
+				
 				
 				//Calculate Euler distance to frontier
 				double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
@@ -204,6 +204,8 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 				//Apply forces
 				(*x) += xForce;
 				(*y) += yForce;
+				
+				std::cout<<"FRONT\t\t("<<xForce<<","<<xForce<<")\t("<<(*x)<<","<<(*y)<<")"<<std::endl;
 				
 			}
 	

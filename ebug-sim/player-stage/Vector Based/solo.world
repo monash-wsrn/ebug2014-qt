@@ -38,5 +38,5 @@ floorplan
 # Also include ports in simple.cfg
 
 ebug(	name "r0"	pose [ 0.000 0.000 0.000 0.000 ]	)
-
+ebug(	name "r1"	pose [ 2.5000 0.000 0.000 0.000 ]	)
 

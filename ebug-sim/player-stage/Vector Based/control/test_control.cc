@@ -55,14 +55,13 @@ int main(int argc, char *argv[])
 		
 	}
 	
-	maps[0].at<schar>(250,400) = -2;
+	std::cout << "Press any key to begin, and q to stop." << std::endl;
+	char pressedKey=waitKey(0); //Pause here until keyboard press (gives user time to arrange windows manually)	
+	
 	
 	//Print column titles for std output
 	std::cout << "Explored (%)\tElapsed Simulation Time (s)\tRobot Number" << std::endl;
 	
-	waitKey(0); //Pause here until keyboard press (gives user time to arrange windows manually)	
-	
-	char pressedKey=-2;	
 	//Control
 	while(pressedKey!='q')
 	{
@@ -73,10 +72,10 @@ int main(int argc, char *argv[])
 			
 				
 			//Mark map with ranger data
-	//		markMap(maps[i], ranger[i], pos[i]);
+			markMap(maps[i], ranger[i], pos[i]);
 			
 			//Communicate maps
-	//		copyMapIntoGlobal(maps[i], globalMap);
+			copyMapIntoGlobal(maps[i], globalMap);
 			//copyGlobalIntoMap(maps[i], globalMap);
 						
 			//Calculate wall force vector
@@ -112,21 +111,36 @@ int main(int argc, char *argv[])
 				
 				
 			//Display current map
-		//	if(showLocalMaps)
-			imshow(windowName[i],SHOW_MAP(maps[i]));
+			if(showLocalMaps)
+				imshow(windowName[i],SHOW_MAP(maps[i]));
 			
 			//Output exploration data and time
 			double explored = getExplored(globalMap);
 			//std::cout << explored << "\t" << pos[i]->GetDataTime() << "\t" << i << std::endl;		
 			
 			
-			std::cout<<"Wall:\t"<<xWall<<"\t"<<yWall<<"\t\t"<<sqrt(pow(xWall,2)+pow(yWall,2))<<std::endl;
-			std::cout<<"Robots:\t"<<xRobots<<"\t"<<yRobots<<"\t\t"<<sqrt(pow(xRobots,2)+pow(yRobots,2))<<std::endl;
+			//Get some stats
+			double mWall = sqrt(pow(xWall,2)+pow(yWall,2));
+			double mRobots = sqrt(pow(xRobots,2)+pow(yRobots,2));
+			double mFront = sqrt(pow(xFront,2)+pow(yFront,2)) ;
+			
+			double mTotal = mWall+mRobots+mFront;
+			
+			//Print some stats
+			std::cout<< "Robot Index\t" << i << std::endl;
 			std::cout<<"Frontier:\t"<<xFront<<"\t"<<yFront<<"\t\t"<<sqrt(pow(xFront,2)+pow(yFront,2))<<std::endl;
-						
-			std::cout<< "Explored %\t"<<explored<<std::endl;
-			std::cout<< "Time (s)\t"<< pos[i]->GetDataTime()<<std::endl;
-			std::cout<< "Robot Index\t" << i << std::endl;	
+			std::cout<<"Wall:\t\t" << 100*mWall/mTotal << std::endl;
+			std::cout<<"Robots:\t\t" << 100*mRobots/mTotal << std::endl;
+			std::cout<<"Frontier:\t" << 100*mFront/mTotal << std::endl<<std::endl<<std::endl;
+			
+			
+//			std::cout<<"Wall:\t\t"<<xWall<<"\t"<<yWall<<"\t\t"<<sqrt(pow(xWall,2)+pow(yWall,2))<<std::endl;
+//			std::cout<<"Robots:\t\t"<<xRobots<<"\t"<<yRobots<<"\t\t"<<sqrt(pow(xRobots,2)+pow(yRobots,2))<<std::endl;
+			
+//						
+//			std::cout<< "Explored %\t"<<explored<<std::endl;
+//			std::cout<< "Time (s)\t"<< pos[i]->GetDataTime()<<std::endl;
+//			std::cout<< "Robot Index\t" << i << std::endl;	
 		}
 		
 		imshow(globalWindow,SHOW_MAP(globalMap));
