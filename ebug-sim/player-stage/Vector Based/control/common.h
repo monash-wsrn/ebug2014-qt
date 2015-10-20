@@ -1,5 +1,8 @@
+//Common code for control algorithms
+//This does not include the main functions so add it using #include "common.h"
+
 //Number of robots in simulation
-#define NO_ROBOTS 5
+#define NO_ROBOTS 8
 
 //Size of stored map memory
 #define MAP_SIZE 500
@@ -8,32 +11,29 @@
 
 //Share maps to neighbours within this radius (metres)
 #define MAP_SHARING_DIST 1
-//Only consider frontiers if within radius (metres)
-#define CONSIDER_FRONT_DIST 3
 
 //Charges of virtual point forces
-#define Q_WALL (-1)
-#define Q_ROBOT (-1)
-#define Q_FRONTIER (1)
+#define Q_WALL (-100)
+//define Q_ROBOT (-100)
+#define Q_FRONTIER (100)
 
-//Dissipation index of virtual forces
+//Dissipation factors of virtual forces
 #define D_WALL (2)
-#define D_ROBOT (2)
+//define D_ROBOT (2)
 #define D_FRONTIER (2)
 
 //Movement bias factors
 #define K_FWD 0.1
-#define B_FWD 0.2
-#define K_ROT 0.1*M_PI
+#define B_FWD 0.15
+#define K_ROT 0.5*M_PI
 #define B_ROT 0
 
 //Drawing thickness parameters
-#define DRAW_LINE_THICKNESS 6
+#define DRAW_LINE_THICKNESS 2
 #define DRAW_POINT_THICKNESS 4
 
-//Scale map data from (-2,1) to (-127,128)
-#define SHOW_MAP(x) 85*x+42
-
+//Round small distances to this to avoid division by zero
+#define NEARLY_ZERO (1.0e-5)
 
 //Standard C libraries
 #include <iostream>
@@ -51,6 +51,13 @@
 
 /*
 * Apply virtual force from each ranger sensor returning a value lower than the maximum.
+* &x: forward component of virtual force
+* &y: sideways component of virtual force
+* *ranger: Player ranger proxies for current robot
+*************
+* Q_WALL is used as the repulsive charge force of the wall
+* D_WALL is used as the dispersion index of the force
+* |F| = sum( Q/r^D ), where r=euclidian distance from current robot
 */
 void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 {
@@ -81,7 +88,7 @@ void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 			//Wall has been seen
 			
 			//Calculate virtual force
-			double rForce = (rRanger>0.01) ? Q_WALL / pow(rRanger,D_WALL) : Q_WALL*10000;
+			double rForce = (rRanger>NEARLY_ZERO) ? Q_WALL / pow(rRanger,D_WALL) : Q_WALL / pow(NEARLY_ZERO,D_WALL);
 			
 			//Convert to cartesian
 			double xForce = rForce*cos(aRanger);
@@ -96,11 +103,63 @@ void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 	
 }
 
-
+/*
+* Increment x and y to include virtual forces from other robots.
+* i: Index of current robot
+* &x: forward component of virtual force
+* &y: sideways component of virtual force
+* *pos[]: Array of player position proxies for all robot agents
+*************
+* Q_ROBOT is used as the repulsive charge force of the other robots
+* D_ROBOT is used as the dispersion index of the force
+* |F| = sum( Q/r^D ), where r=euclidian distance from current robot
+*/
+void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
+{
+	//Get x,y global position and orientation of robot in focus (i)
+	double xThis = pos[i]->GetXPos();
+	double yThis = pos[i]->GetYPos();
+	double aThis = pos[i]->GetYaw();
+	
+	//For each other robot calculate the virtual force
+	for(int k=0; k<NO_ROBOTS; k++)
+	{
+		if(k!=i) //Exculde this robot
+		{
+			//Global position of neighbour
+			double xPos = pos[k]->GetXPos();
+			double yPos = pos[k]->GetYPos();
+			
+			//Calculate Euler distance to neighbour
+			double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
+			//Calculate relative orientation to neighbour
+			double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
+			
+			//Calculate virtual force (avoiding div by zero)
+			double rForce = (dist>NEARLY_ZERO) ? Q_ROBOT / pow(dist,D_ROBOT) : Q_ROBOT / pow(NEARLY_ZERO,D_ROBOT);
+			
+			//Convert to cartesian
+			double xForce = rForce*cos(angle);
+			double yForce = rForce*sin(angle);
+			
+			//Apply forces
+			(*x) += xForce;
+			(*y) += yForce;
+		}
+	}
+				
+}
 
 /*
 * Create virtual attraction forces to frontier points marked on map with -2
-* Only consider points within distance of CONSIDER_FRONT_DIST
+* &x: forward component of virtual force
+* &y: sideways component of virtual force
+* map: current robot's map marked with -2 in frontier cells
+* *pos: Player position proxy for current robot
+*************
+* Q_FRONTIER is used as the attractive charge force of each frontier point
+* D_FRONTIER is used as the dispersion index of the force
+* |F| = sum( Q/r^D ), where r=euclidian distance from current robot
 */
 void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy* pos)
 {
@@ -109,6 +168,7 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 	double yThis = pos->GetYPos();
 	double aThis = pos->GetYaw();
 	
+		
 	//Check each cell for frontier marking and apply force
 	for(int row=0; row<MAP_SIZE; row++)
 		for(int col=0; col<MAP_SIZE; col++)
@@ -121,34 +181,39 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 				
 				//Calculate Euler distance to frontier
 				double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
-				if(dist<CONSIDER_FRONT_DIST)
-				{
-					//Calculate relative orientation to neighbour
-					double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
-			
-			
-					//Calculate virtual force
-					double rForce = (dist>0.001) ? Q_FRONTIER/pow(dist,D_FRONTIER) : Q_FRONTIER*10000;
-			
-					//Convert to cartesian
-					double xForce = rForce*cos(angle);
-					double yForce = rForce*sin(angle);
-			
-					//Apply forces
-					(*x) += xForce;
-					(*y) += yForce;
-				}
+				
+				//Calculate relative orientation to neighbour
+				double angle=atan2(yPos-yThis,xPos-xThis)-aThis;
+		
+		
+				//Calculate virtual force
+				double rForce = (dist>0.NEARLY_ZERO) ? Q_FRONTIER/pow(dist,D_FRONTIER) : Q_FRONTIER / pow(NEARLY_ZERO,D_ROBOT);
+		
+				//Convert to cartesian
+				double xForce = rForce*cos(angle);
+				double yForce = rForce*sin(angle);
+		
+				//Apply forces
+				(*x) += xForce;
+				(*y) += yForce;
+				
 			}
 	
 }
 
 /*
-* Mark the local map with collected information from rangers. -1 for empty space and +1 for a wall
-* and -2 for a frontier.
+* Mark the local map with collected information from rangers.
+* Markings:	-1 for explored empty space
+*		+1 for a wall
+* 		-2 for a frontier
+*		(should be initialised to 0 for unexplored)
+* map: OpenCv matrix with markings from a global perspective
+* *ranger: robot's ranger proxy
+* *pos: robot's global position proxy
 */
 void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dProxy *pos)
 {
-	using namespace cv;
+	using namespace cv; //OpenCv Point functions used
 	
 	//Update configuration data of ranger
 	ranger->RequestConfigure();
@@ -156,7 +221,7 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 	//Use this instead (note the -1)
 	double getAngularRes = (ranger->GetMaxAngle()-ranger->GetMinAngle())/(ranger->GetRangeCount()-1);
 	
-	//Set point at robot position
+	//Set point at robot position, scaled to map coordinates
 	Point ptRobot = Point( (pos->GetXPos()+5)*MAP_SCALE, (pos->GetYPos()-5)*(-1)*MAP_SCALE);
 	
 	//Get robot pose angle (radians)
@@ -176,8 +241,10 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 		//Set point at the end of the ranger reading
 		Point ptRanger = Point((xRanger+5)*MAP_SCALE, (yRanger-5)*(-1)*MAP_SCALE);
 		
+		//Mark map using opencv line() drawing functions.
 		if(ranger->GetRange(i)<ranger->GetMaxRange())
 		{
+			//Found wall...
 			//Draw line from robot to end of ranger reading
 			line(map, ptRobot, ptRanger, -1,DRAW_LINE_THICKNESS);
 			//Mark seen walls
@@ -202,7 +269,7 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 	}
 	
 	//Draw point showing robot's path
-	//line(map, ptRobot, ptRobot, CV_RGB(0, 0, 255),4);
+	//line(map, ptRobot, ptRobot, CV_RGB(0, 0, 255),4); //map is now only one channel
 	 
 }
 
@@ -248,8 +315,8 @@ void shareMaps(int i, cv::Mat *maps, PlayerCc::Position2dProxy **pos)
 
 /*
 * Copy selected map into the global map database
-* Keep original global data if new data is unexplored or
-* if new data is frontier and old data is not unexplored
+* Keep cell of original global data if new data is 'unexplored' or
+* if new data is 'frontier' AND old data is NOT 'unexplored'
 */
 void copyMapIntoGlobal(cv::Mat map, cv::Mat globalMap)
 {

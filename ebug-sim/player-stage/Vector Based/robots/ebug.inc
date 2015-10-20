@@ -116,8 +116,8 @@ define ebug position
 define ebug_ranger ranger
 (
 	sensor(
-		#A negative z pose lets ranger detect other robots (otherwise sits above them)
-		pose [ 0 0 -0.05 0 ]
+		#A negative z pose  [ 0 0 -0.05 0 ] lets ranger detect other robots (otherwise only sees walls)
+		pose [ 0 0 0 0 ]
 	
 		#size [0.036 0.080 0.015 ]
 		range [0 2] # [min max]
