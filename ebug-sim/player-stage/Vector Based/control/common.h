@@ -2,12 +2,15 @@
 //This does not include the main functions so add it using #include "common.h"
 
 //Number of robots in simulation
-#define NO_ROBOTS 8
+#define NO_ROBOTS 1
 
 //Size of stored map memory
 #define MAP_SIZE 500
-//MAP_SCALE = MAP_SIZE (pixels) / Simulation size (metres)
+//Size (length and width) of square simulation world in metres
+#define SIM_SIZE 10
+//MAP_SCALE = MAP_SIZE (pixels) / SIM_SIZE (metres)
 #define MAP_SCALE 50
+
 
 //Share maps to neighbours within this radius (metres)
 #define MAP_SHARING_DIST 1
@@ -31,6 +34,9 @@
 //Drawing thickness parameters
 #define DRAW_LINE_THICKNESS 2
 #define DRAW_POINT_THICKNESS 4
+
+//Scale map data from (-2,1) to (-127,128)
+#define SHOW_MAP(x) 85*x+42
 
 //Round small distances to this to avoid division by zero
 #define NEARLY_ZERO (1.0e-5)
@@ -114,7 +120,7 @@ void avoidWall(double *x, double *y, PlayerCc::RangerProxy *ranger)
 * D_ROBOT is used as the dispersion index of the force
 * |F| = sum( Q/r^D ), where r=euclidian distance from current robot
 */
-void avoidCollision(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
+void avoidRobots(int i, double *x, double *y, PlayerCc::Position2dProxy** pos)
 {
 	//Get x,y global position and orientation of robot in focus (i)
 	double xThis = pos[i]->GetXPos();
@@ -170,14 +176,16 @@ void seekFrontier(double *x, double *y, cv::Mat map,  PlayerCc::Position2dProxy*
 	
 		
 	//Check each cell for frontier marking and apply force
-	for(int row=0; row<MAP_SIZE; row++)
-		for(int col=0; col<MAP_SIZE; col++)
-			if((int)map.at<schar>(row,col)==-2)
+	for(int iMap=0; iMap<MAP_SIZE; iMap++)
+		for(int jMap=0; jMap<MAP_SIZE; jMap++)
+			if((int)map.at<schar>(iMap,jMap)==-2)
 			{
 				//Frontier mark on map
 				//Scale to a global coordinate
-				double xPos = (double)row/MAP_SCALE - 5;
-				double yPos = (double)col/(-1*MAP_SCALE) +5;
+				double xPos = (double)jMap/MAP_SCALE - 5;
+				double yPos = -1.0*(double)iMap/MAP_SCALE +5;
+				
+				std::cout<<"FRONT\t\t("<<iMap<<","<<jMap<<")\t("<<xPos<<","<<yPos<<")"<<std::endl;
 				
 				//Calculate Euler distance to frontier
 				double dist=sqrt(pow(xThis-xPos,2)+pow(yThis-yPos,2));
@@ -222,7 +230,7 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 	double getAngularRes = (ranger->GetMaxAngle()-ranger->GetMinAngle())/(ranger->GetRangeCount()-1);
 	
 	//Set point at robot position, scaled to map coordinates
-	Point ptRobot = Point( (pos->GetXPos()+5)*MAP_SCALE, (pos->GetYPos()-5)*(-1)*MAP_SCALE);
+	Point ptRobot = Point( (pos->GetXPos()+(SIM_SIZE/2))*MAP_SCALE, (pos->GetYPos()-(SIM_SIZE/2))*(-1)*MAP_SCALE);
 	
 	//Get robot pose angle (radians)
 	double aRobot = pos->GetYaw();
@@ -239,7 +247,7 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 		double yRanger = pos->GetYPos() + rRanger*sin(aRanger+aRobot);
 		
 		//Set point at the end of the ranger reading
-		Point ptRanger = Point((xRanger+5)*MAP_SCALE, (yRanger-5)*(-1)*MAP_SCALE);
+		Point ptRanger = Point((xRanger+(SIM_SIZE/2))*MAP_SCALE, (yRanger-(SIM_SIZE/2))*(-1)*MAP_SCALE);
 		
 		//Mark map using opencv line() drawing functions.
 		if(ranger->GetRange(i)<ranger->GetMaxRange())
@@ -251,7 +259,7 @@ void markMap(cv::Mat map, PlayerCc::RangerProxy *ranger, PlayerCc::Position2dPro
 			line(map, ptRanger, ptRanger, 1, DRAW_POINT_THICKNESS);
 		}else{
 			//Mark unexplored frontier (make sure to to overwrite -2)
-			if((-1)!=map.at<signed char>(ptRanger)) //check if unexplored point
+			if((-1)!=map.at<schar>(ptRanger)) //check if unexplored point
 			{
 				//Draw line from robot to end of ranger reading
 				line(map, ptRobot, ptRanger, -1,DRAW_LINE_THICKNESS);
