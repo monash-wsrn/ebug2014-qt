@@ -1,2 +1,1 @@
-![System diagram](images/wireless-control-diagram.png "System diagram")
-
+We have the ebug2014-firmware, nrf-bridge, and ebug2014-camera folders into separate repositories under the ebug2014-swarm group.
