@@ -223,6 +223,8 @@ inline float min_rounding(std::vector<float> &angles) //minimise rounding when s
 }
 
 /* 
+These are the LED illumination sequences we use.
+
 BBGRRBRBGBBGBBRG
 RGRRRGRBGBRGBGRG
 BRGGGGRRRBBBBBGR
@@ -242,6 +244,7 @@ RBGGBGRRRRBRRGGR
 0 = R, 1 = G, 2 = B
 */
 
+// 16 upward looking LEDs, and 16 horizontal LEDs.
 using std::array;
 const array<array<uint8,16>,15> seqs{{
 {{2,2,1,0,0,2,0,2,1,2,2,1,2,2,0,1}},
