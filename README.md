@@ -1,1 +1,1 @@
-We have the ebug2014-firmware, nrf-bridge, and ebug2014-camera folders into separate repositories under the ebug2014-swarm group.
+# QT based eBug2014 control system. 
